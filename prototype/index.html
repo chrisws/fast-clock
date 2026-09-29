@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fasting Clock</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-2: #242836;
+  --text: #e8e6e1;
+  --text-muted: #8b8fa3;
+  --accent: #f0a830;
+  --accent-2: #3dd4b5;
+  --accent-dim: rgba(240, 168, 48, 0.15);
+  --accent-2-dim: rgba(61, 212, 181, 0.12);
+  --ring-track: #2a2e3d;
+  --ring-track-inner: #222633;
+  --shadow-1: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-2: 0 8px 32px rgba(0,0,0,0.4);
+  --radius: 16px;
+  --font: -apple-system, "Segoe UI", "Inter", system-ui, sans-serif;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(61,212,181,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 60%, rgba(240,168,48,0.03) 0%, transparent 70%);
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.logo {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.logo span { color: var(--accent-2); }
+
+.protocol-badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--accent-2-dim);
+  color: var(--accent-2);
+  border: 1px solid rgba(61,212,181,0.2);
+}
+
+.clock-wrap {
+  position: relative;
+  width: min(85vw, 440px);
+  height: min(85vw, 440px);
+}
+
+.clock-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+/* ── Center Button ── */
+.center-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-2), inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.center-btn:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 8px 40px rgba(240,168,48,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.center-btn:active {
+  transform: translate(-50%, -50%) scale(0.97);
+}
+
+.center-btn .icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.center-btn .label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.center-btn.eating {
+  background: var(--accent);
+  color: #1a1200;
+  box-shadow: 0 0 40px rgba(240,168,48,0.3), var(--shadow-2);
+}
+
+/* ── Info Panel ── */
+.info-panel {
+  position: absolute;
+  bottom: calc(50% - 105px);
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.status-text .highlight {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+/* ── Eating Window Card ── */
+.eat-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid rgba(240,168,48,0.2);
+  border-radius: var(--radius);
+  padding: var(--sp-5) var(--sp-6);
+  text-align: center;
+  box-shadow: var(--shadow-2);
+  min-width: 220px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 5;
+}
+
+.eat-card.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.eat-card h2 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--sp-3);
+}
+
+.eat-card .window {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: var(--sp-2);
+}
+
+.eat-card .duration {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-4);
+}
+
+.eat-card .countdown {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-2);
+  background: var(--accent-2-dim);
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.eat-card .close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.eat-card .close-btn:hover { color: var(--text); }
+
+/* ── Bottom Stats ── */
+.stats {
+  position: fixed;
+  bottom: var(--sp-5);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--sp-5);
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat .val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat .lbl {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* ── SVG text ── */
+.hour-label {
+  font-size: 10px;
+  fill: var(--text-muted);
+  font-family: var(--font);
+  font-weight: 500;
+}
+
+/* ── Animations ── */
+@media (prefers-reduced-motion: no-preference) {
+  .clock-wrap {
+    animation: fadeIn 0.6s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .time-dot {
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { r: 5; opacity: 1; }
+    50% { r: 7; opacity: 0.7; }
+  }
+}
+
+/* ── Focus ── */
+.center-btn:focus-visible,
+.eat-card .close-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .clock-wrap {
+    width: 88vw;
+    height: 88vw;
+  }
+  .center-btn {
+    width: 95px;
+    height: 95px;
+    font-size: 15px;
+  }
+  .eat-card {
+    min-width: 180px;
+    padding: var(--sp-4) var(--sp-5);
+  }
+  .eat-card .window {
+    font-size: 22px;
+  }
+  .stats {
+    gap: var(--sp-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">fast<span>clock</span></div>
+  <div class="protocol-badge">18 : 6</div>
+</header>
+
+<div class="clock-wrap">
+  <svg class="clock-svg" viewBox="0 0 400 400" id="clockSvg">
+    <!-- ═══ OUTER RING: Time Clock (r=170) ═══ -->
+    <circle cx="200" cy="200" r="170" fill="none" stroke="var(--ring-track)" stroke-width="4" />
+    <g id="outerTicks"></g>
+    <g id="outerLabels"></g>
+    <!-- Time hand (thin line from center to outer ring) -->
+    <line id="timeHand" x1="200" y1="200" x2="200" y2="30"
+          stroke="var(--text)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+    <!-- Time dot on outer ring -->
+    <circle class="time-dot" id="timeDot" cx="200" cy="30" r="5" fill="#fff" />
+
+    <!-- ═══ INNER RING: Fasting / Eating Arcs (r=135) ═══ -->
+    <circle cx="200" cy="200" r="135" fill="none" stroke="var(--ring-track-inner)" stroke-width="18" />
+    <!-- Fasting arc (teal) -->
+    <circle cx="200" cy="200" r="135" fill="none" stroke="var(--accent-2)" stroke-width="18"
+            stroke-linecap="round" id="fastArc" opacity="0.85" />
+    <!-- Eating arc (amber) -->
+    <circle cx="200" cy="200" r="135" fill="none" stroke="var(--accent)" stroke-width="18"
+            stroke-linecap="round" id="eatArc" opacity="0.9" />
+    <!-- Inner ring labels for start/end -->
+    <g id="innerLabels"></g>
+  </svg>
+
+  <button class="center-btn" id="eatBtn" aria-label="Show eating window">
+    <span class="icon">🍽</span>
+    <span class="label">EAT</span>
+  </button>
+
+  <div class="info-panel">
+    <div class="status-text" id="statusText">
+      Fasting · <span class="highlight" id="fastCountdown">--:--</span> remaining
+    </div>
+  </div>
+
+  <div class="eat-card" id="eatCard">
+    <button class="close-btn" id="closeCard" aria-label="Close">&times;</button>
+    <h2>Eating Window</h2>
+    <div class="window" id="windowTimes">--:-- – --:--</div>
+    <div class="duration" id="windowDuration">6 hours</div>
+    <div class="countdown" id="windowCountdown">Opens in --:--</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="val" id="statFast">18h</div>
+    <div class="lbl">Fasting</div>
+  </div>
+  <div class="stat">
+    <div class="val" id="statEat">6h</div>
+    <div class="lbl">Eating</div>
+  </div>
+  <div class="stat">
+    <div class="val" id="statStreak">0</div>
+    <div class="lbl">Day Streak</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  "use strict";
+
+  // ── Config ──
+  var FAST_HOURS = 18;
+  var EAT_HOURS = 6;
+  var EAT_START = 12;
+  var EAT_END = 18;
+
+  var OUTER_R = 170;
+  var INNER_R = 135;
+  var OUTER_CIRC = 2 * Math.PI * OUTER_R;
+  var INNER_CIRC = 2 * Math.PI * INNER_R;
+
+  var fastArc = document.getElementById("fastArc");
+  var eatArc = document.getElementById("eatArc");
+  var timeDot = document.getElementById("timeDot");
+  var timeHand = document.getElementById("timeHand");
+  var eatBtn = document.getElementById("eatBtn");
+  var eatCard = document.getElementById("eatCard");
+  var closeCard = document.getElementById("closeCard");
+  var statusText = document.getElementById("statusText");
+  var windowTimes = document.getElementById("windowTimes");
+  var windowDuration = document.getElementById("windowDuration");
+  var windowCountdown = document.getElementById("windowCountdown");
+
+  // ── Build outer ticks + labels ──
+  var outerTicks = document.getElementById("outerTicks");
+  var outerLabels = document.getElementById("outerLabels");
+  for (var h = 0; h < 24; h++) {
+    var angle = (h / 24) * 2 * Math.PI;
+    var isMajor = h % 6 === 0;
+    var isMid = h % 3 === 0;
+    var r1 = isMajor ? 158 : (isMid ? 161 : 164);
+    var r2 = 168;
+    var x1 = 200 + r1 * Math.cos(angle);
+    var y1 = 200 + r1 * Math.sin(angle);
+    var x2 = 200 + r2 * Math.cos(angle);
+    var y2 = 200 + r2 * Math.sin(angle);
+    var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
+    line.setAttribute("stroke", isMajor ? "var(--text-muted)" : "var(--ring-track)");
+    line.setAttribute("stroke-width", isMajor ? 2 : 1);
+    outerTicks.appendChild(line);
+
+    var lr = 148;
+    var lx = 200 + lr * Math.cos(angle);
+    var ly = 200 + lr * Math.sin(angle);
+    var txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    txt.setAttribute("x", lx);
+    txt.setAttribute("y", ly);
+    txt.setAttribute("text-anchor", "middle");
+    txt.setAttribute("dominant-baseline", "central");
+    txt.setAttribute("class", "hour-label");
+    if (isMajor) {
+      txt.setAttribute("font-size", "12");
+      txt.setAttribute("font-weight", "700");
+    } else {
+      txt.setAttribute("font-size", "9");
+      txt.setAttribute("font-weight", "500");
+    }
+    txt.textContent = h;
+    outerLabels.appendChild(txt);
+  }
+
+  // ── Inner ring start/end labels ──
+  var innerLabels = document.getElementById("innerLabels");
+  function addInnerLabel(hour, text, color) {
+    var angle = (hour / 24) * 2 * Math.PI;
+    var lr = 115;
+    var lx = 200 + lr * Math.cos(angle);
+    var ly = 200 + lr * Math.sin(angle);
+    var txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    txt.setAttribute("x", lx);
+    txt.setAttribute("y", ly);
+    txt.setAttribute("text-anchor", "middle");
+    txt.setAttribute("dominant-baseline", "central");
+    txt.setAttribute("font-size", "10");
+    txt.setAttribute("font-weight", "600");
+    txt.setAttribute("fill", color);
+    txt.setAttribute("font-family", "var(--font)");
+    txt.textContent = text;
+    innerLabels.appendChild(txt);
+  }
+  addInnerLabel(EAT_START, "EAT", "var(--accent)");
+  addInnerLabel(EAT_END, "FAST", "var(--accent-2)");
+
+  // ── Helpers ──
+  function fmtHour(h) {
+    h = h % 24;
+    var ap = h < 12 ? "AM" : "PM";
+    var hh = h % 12 === 0 ? 12 : h % 12;
+    return hh + ":00 " + ap;
+  }
+
+  function fmtCountdown(hours) {
+    var totalMin = Math.round(hours * 60);
+    var h = Math.floor(totalMin / 60);
+    var m = totalMin % 60;
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+  }
+
+  function arcDash(startHour, endHour, circ) {
+    var len = ((endHour - startHour + 24) % 24) / 24 * circ;
+    var offset = -(startHour / 24) * circ;
+    return { dash: len, offset: offset };
+  }
+
+  // ── Render ──
+  function render() {
+    var now = new Date();
+    var curH = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+
+    var inEat = curH >= EAT_START && curH < EAT_END;
+
+    // Fasting arc: EAT_END → EAT_START (wrapping)
+    var fa = arcDash(EAT_END, EAT_START, INNER_CIRC);
+    fastArc.setAttribute("stroke-dasharray", fa.dash + " " + (INNER_CIRC - fa.dash));
+    fastArc.setAttribute("stroke-dashoffset", fa.offset);
+
+    // Eating arc: EAT_START → EAT_END
+    var ea = arcDash(EAT_START, EAT_END, INNER_CIRC);
+    eatArc.setAttribute("stroke-dasharray", ea.dash + " " + (INNER_CIRC - ea.dash));
+    eatArc.setAttribute("stroke-dashoffset", ea.offset);
+
+    // Time hand + dot (continuous, minutes-level)
+    var angle = (curH / 24) * 2 * Math.PI;
+    var dx = 200 + OUTER_R * Math.cos(angle);
+    var dy = 200 + OUTER_R * Math.sin(angle);
+    timeDot.setAttribute("cx", dx);
+    timeDot.setAttribute("cy", dy);
+    timeHand.setAttribute("x2", dx);
+    timeHand.setAttribute("y2", dy);
+
+    // Status
+    if (inEat) {
+      statusText.innerHTML = 'Eating · <span class="highlight">' + fmtCountdown(EAT_END - curH) + '</span> until fast';
+      eatBtn.classList.add("eating");
+      eatBtn.querySelector(".label").textContent = "FAST";
+      eatBtn.querySelector(".icon").textContent = "⏳";
+    } else {
+      var nextEatStart = curH < EAT_START ? EAT_START : EAT_START + 24;
+      var remaining = nextEatStart - curH;
+      statusText.innerHTML = 'Fasting · <span class="highlight">' + fmtCountdown(remaining) + '</span> remaining';
+      eatBtn.classList.remove("eating");
+      eatBtn.querySelector(".label").textContent = "EAT";
+      eatBtn.querySelector(".icon").textContent = "🍽";
+    }
+
+    // Card
+    windowTimes.textContent = fmtHour(EAT_START) + " – " + fmtHour(EAT_END);
+    windowDuration.textContent = EAT_HOURS + " hours";
+    if (inEat) {
+      windowCountdown.textContent = "Closes in " + fmtCountdown(EAT_END - curH);
+    } else {
+      windowCountdown.textContent = "Opens in " + fmtCountdown(remaining);
+    }
+  }
+
+  // ── Events ──
+  eatBtn.addEventListener("click", function() {
+    eatCard.classList.toggle("visible");
+  });
+
+  closeCard.addEventListener("click", function() {
+    eatCard.classList.remove("visible");
+  });
+
+  render();
+  setInterval(render, 1000);
+})();
+</script>
+</body>
+</html>
