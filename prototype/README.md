@@ -80,22 +80,29 @@ The HTML prototype is the **design and logic reference**. The production app wil
 - **Biometrics / lock** — optional `BiometricPrompt` to gate the "Break Fast" action
 - **Theming** — map the CSS custom properties to Compose `ColorScheme` (dark by default, light optional)
 
-## Possible Next Steps
+## Next Steps
 
-| # | Idea | Android note |
-|---|------|-------------|
-| 1 | **Protocol switching** | Toggle 16:8, 18:6, 20:4, 23:1 or custom. Persist in `SharedPreferences`. |
-| 2 | **Start / Break Fast flow** | "Start Fast" locks a timestamp; "Break Fast" logs completion. Optional biometric gate. |
-| 3 | **State persistence** | `localStorage` now → `SharedPreferences` / `Room` in the Android build. |
-| 4 | **Streak & history** | Track completed fasts. 7-day / 30-day calendar strip. Store in `Room`. |
-| 5 | **Water / calorie logging** | Quick-tap counters during the eating window. |
-| 6 | **Notifications** | Browser `Notification` API now → `NotificationManager` + `WorkManager` on Android. |
-| 7 | **Home-screen widget** | Small widget showing status + countdown. Android-only feature. |
-| 8 | **Body metrics** | Optional weight / waist entry with an inline trend line. |
-| 9 | **Share / export** | Generate a summary card (canvas → PNG) or export fasts as CSV. |
-| 10 | **Dark / light theme** | Swap `:root` tokens now → Compose `ColorScheme` later. |
-| 11 | **PWA / TWA** | Service worker + manifest for an installable web version before going fully native. |
-| 12 | **Multi-profile** | Multiple users on one device (e.g., partner sharing a phone). |
+| # | Idea                        | Android note                                                                                                  |
+|---|-----------------------------|---------------------------------------------------------------------------------------------------------------|
+| 1 | **Protocol switching**      | Toggle 16:8, 18:6, 20:4, 23:1 or custom. Persist in `SharedPreferences`. Help text showing protocol objective |
+| 2 | **Start / Break Fast flow** | "Start Fast" locks a timestamp; "Break Fast" logs completion. Optional biometric gate.                        |
+| 3 | **State persistence**       | `localStorage` now → `SharedPreferences` / `Room` in the Android build.                                       |
+| 4 | **12 hour clock not 24**    | subtle AM/PM labelling                                                                                        |
+| 5 | Daily Score                 | When eat and stop eat button used outside the window the score is lowered                                     |
+| 6 | Weigh-in                    | Track weight loss                                                                                             |
+|   |                             |                                                                                                               |
+
+## Next Steps ideas for later
+
+| 1 | **Streak & history**        | Track completed fasts. 7-day / 30-day calendar strip. Store in `Room`.              |
+| 2 | **Water / calorie logging** | Quick-tap counters during the eating window.                                        |
+| 3 | **Notifications**           | Browser `Notification` API now → `NotificationManager` + `WorkManager` on Android.  |
+| 4 | **Home-screen widget**      | Small widget showing status + countdown. Android-only feature.                      |
+| 5 | **Body metrics**            | Optional weight / waist entry with an inline trend line.                            |
+| 6 | **Share / export**          | Generate a summary card (canvas → PNG) or export fasts as CSV.                      |
+| 7 | **Dark / light theme**      | Swap `:root` tokens now → Compose `ColorScheme` later.                              |
+| 8 | **PWA / TWA**               | Service worker + manifest for an installable web version before going fully native. |
+| 9 | **Multi-profile**           | Multiple users on one device (e.g., partner sharing a phone).                       |
 
 ## License
 

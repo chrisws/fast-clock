@@ -42,12 +42,13 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow-x: hidden;
   background-image:
     radial-gradient(ellipse 80% 60% at 50% 40%, rgba(61,212,181,0.04) 0%, transparent 70%),
     radial-gradient(ellipse 60% 50% at 50% 60%, rgba(240,168,48,0.03) 0%, transparent 70%);
 }
 
+/* ── Header ── */
 header {
   position: fixed;
   top: 0;
@@ -78,8 +79,103 @@ header {
   background: var(--accent-2-dim);
   color: var(--accent-2);
   border: 1px solid rgba(61,212,181,0.2);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background 0.2s, border-color 0.2s;
 }
 
+.protocol-badge:hover {
+  background: rgba(61,212,181,0.22);
+  border-color: rgba(61,212,181,0.4);
+}
+
+/* ── Protocol Panel ── */
+.protocol-panel {
+  position: fixed;
+  top: 52px;
+  right: var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-2);
+  z-index: 20;
+  display: none;
+  min-width: 240px;
+}
+
+.protocol-panel.visible { display: block; }
+
+.protocol-panel h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+.protocol-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.protocol-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.protocol-item:hover { background: var(--surface-2); }
+
+.protocol-item.active {
+  background: var(--accent-2-dim);
+  color: var(--accent-2);
+}
+
+.protocol-item .desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.custom-fields {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+.custom-fields label {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.custom-fields input {
+  width: 64px;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--ring-track);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+}
+
+.protocol-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: var(--sp-3);
+  line-height: 1.4;
+}
+
+/* ── Clock ── */
 .clock-wrap {
   position: relative;
   width: min(85vw, 440px);
@@ -121,7 +217,7 @@ header {
 
 .center-btn:hover {
   transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: 0 8px 40px rgba(240,168,48,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 8px 40px rgba(61,212,181,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 .center-btn:active {
@@ -134,18 +230,44 @@ header {
 }
 
 .center-btn .label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
-.center-btn.eating {
+.center-btn.fasting {
   background: var(--accent);
   color: #1a1200;
   box-shadow: 0 0 40px rgba(240,168,48,0.3), var(--shadow-2);
 }
 
-/* ── Info Panel ── */
+/* ── Info Button ── */
+.info-btn {
+  position: absolute;
+  bottom: calc(50% - 108px);
+  right: calc(50% - 108px);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--surface-2);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  transition: color 0.2s, border-color 0.2s;
+  z-index: 4;
+}
+
+.info-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* ── Status ── */
 .info-panel {
   position: absolute;
   bottom: calc(50% - 105px);
@@ -240,6 +362,93 @@ header {
 
 .eat-card .close-btn:hover { color: var(--text); }
 
+/* ── Weigh-in ── */
+.weigh-in {
+  position: fixed;
+  bottom: calc(var(--sp-5) + 56px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--surface);
+  border: 1px solid var(--surface-2);
+  border-radius: var(--radius);
+  padding: var(--sp-2) var(--sp-4);
+  box-shadow: var(--shadow-1);
+  z-index: 10;
+}
+
+.weigh-display {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+
+.weigh-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.weigh-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.weigh-change {
+  font-size: 12px;
+  color: var(--accent-2);
+}
+
+.weigh-btn {
+  background: none;
+  border: 1px solid var(--surface-2);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.weigh-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.weigh-input {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.weigh-input input {
+  width: 72px;
+  padding: 4px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--ring-track);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+}
+
+.weigh-input button {
+  background: var(--accent-2);
+  border: none;
+  border-radius: 8px;
+  color: #0a1a16;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
 /* ── Bottom Stats ── */
 .stats {
   position: fixed;
@@ -297,7 +506,10 @@ header {
 
 /* ── Focus ── */
 .center-btn:focus-visible,
-.eat-card .close-btn:focus-visible {
+.eat-card .close-btn:focus-visible,
+.protocol-badge:focus-visible,
+.info-btn:focus-visible,
+.weigh-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -322,6 +534,13 @@ header {
   .stats {
     gap: var(--sp-4);
   }
+  .protocol-panel {
+    right: var(--sp-3);
+    min-width: 200px;
+  }
+  .weigh-in {
+    padding: var(--sp-2) var(--sp-3);
+  }
 }
 </style>
 </head>
@@ -329,8 +548,22 @@ header {
 
 <header>
   <div class="logo">fast<span>clock</span></div>
-  <div class="protocol-badge">18 : 6</div>
+  <button class="protocol-badge" id="protocolBadge" aria-label="Switch protocol">18 : 6</button>
 </header>
+
+<div class="protocol-panel" id="protocolPanel">
+  <h3>Protocol</h3>
+  <div class="protocol-list" id="protocolList"></div>
+  <div class="custom-fields" id="customFields" style="display:none">
+    <label>Eat start
+      <input type="number" id="customEatStart" min="0" max="23" value="12">
+    </label>
+    <label>Eat end
+      <input type="number" id="customEatEnd" min="0" max="23" value="18">
+    </label>
+  </div>
+  <p class="protocol-desc" id="protocolDesc"></p>
+</div>
 
 <div class="clock-wrap">
   <svg class="clock-svg" viewBox="0 0 400 400" id="clockSvg">
@@ -338,34 +571,29 @@ header {
     <circle cx="200" cy="200" r="170" fill="none" stroke="var(--ring-track)" stroke-width="4" />
     <g id="outerTicks"></g>
     <g id="outerLabels"></g>
-    <!-- Time hand (thin line from center to outer ring) -->
     <line id="timeHand" x1="200" y1="200" x2="200" y2="30"
           stroke="var(--text)" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
-    <!-- Time dot on outer ring -->
     <circle class="time-dot" id="timeDot" cx="200" cy="30" r="5" fill="#fff" />
 
     <!-- ═══ INNER RING: Fasting / Eating Arcs (r=135) ═══ -->
     <circle cx="200" cy="200" r="135" fill="none" stroke="var(--ring-track-inner)" stroke-width="18" />
-    <!-- Fasting arc (teal) -->
     <circle cx="200" cy="200" r="135" fill="none" stroke="var(--accent-2)" stroke-width="18"
             stroke-linecap="round" id="fastArc" opacity="0.85" />
-    <!-- Eating arc (amber) -->
     <circle cx="200" cy="200" r="135" fill="none" stroke="var(--accent)" stroke-width="18"
             stroke-linecap="round" id="eatArc" opacity="0.9" />
-    <!-- Inner ring labels for start/end -->
     <g id="innerLabels"></g>
   </svg>
 
-  <button class="center-btn" id="eatBtn" aria-label="Show eating window">
-    <span class="icon">🍽</span>
-    <span class="label">EAT</span>
+  <button class="center-btn" id="actionBtn" aria-label="Start or break fast">
+    <span class="icon">⏳</span>
+    <span class="label">START FAST</span>
   </button>
 
   <div class="info-panel">
-    <div class="status-text" id="statusText">
-      Fasting · <span class="highlight" id="fastCountdown">--:--</span> remaining
-    </div>
+    <div class="status-text" id="statusText"></div>
   </div>
+
+  <button class="info-btn" id="infoBtn" aria-label="Show eating window">ⓘ</button>
 
   <div class="eat-card" id="eatCard">
     <button class="close-btn" id="closeCard" aria-label="Close">&times;</button>
@@ -373,6 +601,19 @@ header {
     <div class="window" id="windowTimes">--:-- – --:--</div>
     <div class="duration" id="windowDuration">6 hours</div>
     <div class="countdown" id="windowCountdown">Opens in --:--</div>
+  </div>
+</div>
+
+<div class="weigh-in" id="weighIn">
+  <div class="weigh-display" id="weighDisplay">
+    <span class="weigh-label">Weight</span>
+    <span class="weigh-value" id="weighValue">—</span>
+    <span class="weigh-change" id="weighChange"></span>
+  </div>
+  <button class="weigh-btn" id="weighBtn">+ Log</button>
+  <div class="weigh-input" id="weighInput" style="display:none">
+    <input type="number" id="weighInputField" step="0.1" min="0" placeholder="lbs">
+    <button id="weighSave">Save</button>
   </div>
 </div>
 
@@ -386,8 +627,12 @@ header {
     <div class="lbl">Eating</div>
   </div>
   <div class="stat">
+    <div class="val" id="statScore">100</div>
+    <div class="lbl">Score</div>
+  </div>
+  <div class="stat">
     <div class="val" id="statStreak">0</div>
-    <div class="lbl">Day Streak</div>
+    <div class="lbl">Streak</div>
   </div>
 </div>
 
@@ -395,30 +640,111 @@ header {
 (function() {
   "use strict";
 
-  // ── Config ──
-  var FAST_HOURS = 18;
-  var EAT_HOURS = 6;
-  var EAT_START = 12;
-  var EAT_END = 18;
+  // ── Protocol Presets ──
+  var PROTOCOLS = {
+    "16:8": { fast: 16, eat: 8, eatStart: 12, eatEnd: 20, desc: "Beginner-friendly. 16 h fast, 8 h eat." },
+    "18:6": { fast: 18, eat: 6, eatStart: 12, eatEnd: 18, desc: "Intermediate. 18 h fast, 6 h eat." },
+    "20:4": { fast: 20, eat: 4, eatStart: 12, eatEnd: 16, desc: "Advanced. 20 h fast, 4 h eat." },
+    "23:1": { fast: 23, eat: 1, eatStart: 12, eatEnd: 13, desc: "Expert. 23 h fast, 1 h eat." },
+    "custom": { fast: 0, eat: 0, eatStart: 12, eatEnd: 18, desc: "Set your own hours below." }
+  };
 
-  var OUTER_R = 170;
-  var INNER_R = 135;
-  var OUTER_CIRC = 2 * Math.PI * OUTER_R;
-  var INNER_CIRC = 2 * Math.PI * INNER_R;
+  // ── State ──
+  var state = {
+    protocol: "18:6",
+    customEatStart: 12,
+    customEatEnd: 18,
+    fastStart: null,
+    fastHistory: [],
+    dailyScore: 100,
+    scoreDate: "",
+    weightLog: []
+  };
 
+  // ── Persistence ──
+  function loadState() {
+    try {
+      var saved = localStorage.getItem("fc_state");
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        for (var k in parsed) {
+          if (state.hasOwnProperty(k)) {
+            state[k] = parsed[k];
+          }
+        }
+      }
+    } catch (e) { /* ignore */ }
+    var today = new Date().toDateString();
+    if (state.scoreDate !== today) {
+      state.dailyScore = 100;
+      state.scoreDate = today;
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem("fc_state", JSON.stringify(state));
+    } catch (e) { /* ignore */ }
+  }
+
+  // ── Current protocol values ──
+  function getProtocol() {
+    if (state.protocol === "custom") {
+      var eatH = ((state.customEatEnd - state.customEatStart + 24) % 24);
+      if (eatH === 0) { eatH = 24; }
+      return {
+        fast: 24 - eatH,
+        eat: eatH,
+        eatStart: state.customEatStart,
+        eatEnd: state.customEatEnd
+      };
+    }
+    var p = PROTOCOLS[state.protocol];
+    return { fast: p.fast, eat: p.eat, eatStart: p.eatStart, eatEnd: p.eatEnd };
+  }
+
+  // ── DOM refs ──
   var fastArc = document.getElementById("fastArc");
   var eatArc = document.getElementById("eatArc");
   var timeDot = document.getElementById("timeDot");
   var timeHand = document.getElementById("timeHand");
-  var eatBtn = document.getElementById("eatBtn");
+  var actionBtn = document.getElementById("actionBtn");
   var eatCard = document.getElementById("eatCard");
   var closeCard = document.getElementById("closeCard");
   var statusText = document.getElementById("statusText");
   var windowTimes = document.getElementById("windowTimes");
   var windowDuration = document.getElementById("windowDuration");
   var windowCountdown = document.getElementById("windowCountdown");
+  var protocolBadge = document.getElementById("protocolBadge");
+  var protocolPanel = document.getElementById("protocolPanel");
+  var protocolList = document.getElementById("protocolList");
+  var customFields = document.getElementById("customFields");
+  var protocolDesc = document.getElementById("protocolDesc");
+  var infoBtn = document.getElementById("infoBtn");
+  var statFast = document.getElementById("statFast");
+  var statEat = document.getElementById("statEat");
+  var statScore = document.getElementById("statScore");
+  var statStreak = document.getElementById("statStreak");
+  var weighValue = document.getElementById("weighValue");
+  var weighChange = document.getElementById("weighChange");
+  var weighBtn = document.getElementById("weighBtn");
+  var weighInput = document.getElementById("weighInput");
+  var weighInputField = document.getElementById("weighInputField");
+  var weighSave = document.getElementById("weighSave");
 
-  // ── Build outer ticks + labels ──
+  var OUTER_R = 170;
+  var INNER_R = 135;
+  var INNER_CIRC = 2 * Math.PI * INNER_R;
+
+  // ── 12-hour label ──
+  function hourLabel(h) {
+    h = h % 24;
+    var ap = h < 12 ? "a" : "p";
+    var hh = h % 12 === 0 ? 12 : h % 12;
+    return hh + ap;
+  }
+
+  // ── Build outer ticks + labels (12-hour) ──
   var outerTicks = document.getElementById("outerTicks");
   var outerLabels = document.getElementById("outerLabels");
   for (var h = 0; h < 24; h++) {
@@ -452,16 +778,24 @@ header {
     if (isMajor) {
       txt.setAttribute("font-size", "12");
       txt.setAttribute("font-weight", "700");
+    } else if (isMid) {
+      txt.setAttribute("font-size", "10");
+      txt.setAttribute("font-weight", "600");
     } else {
-      txt.setAttribute("font-size", "9");
+      txt.setAttribute("font-size", "8");
       txt.setAttribute("font-weight", "500");
     }
-    txt.textContent = h;
+    txt.textContent = hourLabel(h);
     outerLabels.appendChild(txt);
   }
 
-  // ── Inner ring start/end labels ──
+  // ── Inner ring labels ──
   var innerLabels = document.getElementById("innerLabels");
+  function clearInnerLabels() {
+    while (innerLabels.firstChild) {
+      innerLabels.removeChild(innerLabels.firstChild);
+    }
+  }
   function addInnerLabel(hour, text, color) {
     var angle = (hour / 24) * 2 * Math.PI;
     var lr = 115;
@@ -479,8 +813,12 @@ header {
     txt.textContent = text;
     innerLabels.appendChild(txt);
   }
-  addInnerLabel(EAT_START, "EAT", "var(--accent)");
-  addInnerLabel(EAT_END, "FAST", "var(--accent-2)");
+  function buildInnerLabels() {
+    clearInnerLabels();
+    var p = getProtocol();
+    addInnerLabel(p.eatStart, "EAT", "var(--accent)");
+    addInnerLabel(p.eatEnd, "FAST", "var(--accent-2)");
+  }
 
   // ── Helpers ──
   function fmtHour(h) {
@@ -492,6 +830,7 @@ header {
 
   function fmtCountdown(hours) {
     var totalMin = Math.round(hours * 60);
+    if (totalMin < 0) { totalMin = 0; }
     var h = Math.floor(totalMin / 60);
     var m = totalMin % 60;
     return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
@@ -503,24 +842,94 @@ header {
     return { dash: len, offset: offset };
   }
 
+  function inEatingWindow(curH, p) {
+    if (p.eatStart < p.eatEnd) {
+      return curH >= p.eatStart && curH < p.eatEnd;
+    }
+    return curH >= p.eatStart || curH < p.eatEnd;
+  }
+
+  function timeUntilEatEnd(curH, p) {
+    if (p.eatStart < p.eatEnd) {
+      return p.eatEnd - curH;
+    }
+    if (curH >= p.eatStart) {
+      return (24 - curH) + p.eatEnd;
+    }
+    return p.eatEnd - curH;
+  }
+
+  function timeUntilEatStart(curH, p) {
+    if (p.eatStart < p.eatEnd) {
+      if (curH < p.eatStart) { return p.eatStart - curH; }
+      return (24 - curH) + p.eatStart;
+    }
+    if (curH >= p.eatEnd && curH < p.eatStart) {
+      return p.eatStart - curH;
+    }
+    return 0;
+  }
+
+  // ── Streak ──
+  function calcStreak() {
+    if (state.fastHistory.length === 0) { return 0; }
+    var streak = 0;
+    var today = new Date().toDateString();
+    var yesterday = new Date(Date.now() - 86400000).toDateString();
+    var lastDate = new Date(state.fastHistory[state.fastHistory.length - 1].end).toDateString();
+    if (lastDate === today || lastDate === yesterday) {
+      streak = 1;
+      for (var i = state.fastHistory.length - 2; i >= 0; i--) {
+        var d = new Date(state.fastHistory[i].end).toDateString();
+        var prevD = new Date(state.fastHistory[i + 1].end).toDateString();
+        var diff = (new Date(prevD) - new Date(d)) / 86400000;
+        if (diff === 1) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    }
+    return streak;
+  }
+
+  // ── Weigh-in render ──
+  function renderWeighIn() {
+    if (state.weightLog.length === 0) {
+      weighValue.textContent = "—";
+      weighChange.textContent = "";
+      return;
+    }
+    var latest = state.weightLog[state.weightLog.length - 1];
+    weighValue.textContent = latest.weight + " lb";
+    if (state.weightLog.length > 1) {
+      var first = state.weightLog[0];
+      var diff = latest.weight - first.weight;
+      var sign = diff <= 0 ? "\u2193" : "\u2191";
+      weighChange.textContent = sign + " " + Math.abs(diff).toFixed(1) + " from start";
+      weighChange.style.color = diff <= 0 ? "var(--accent-2)" : "var(--accent)";
+    } else {
+      weighChange.textContent = "";
+    }
+  }
+
   // ── Render ──
   function render() {
     var now = new Date();
     var curH = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+    var p = getProtocol();
+    var inEat = inEatingWindow(curH, p);
 
-    var inEat = curH >= EAT_START && curH < EAT_END;
-
-    // Fasting arc: EAT_END → EAT_START (wrapping)
-    var fa = arcDash(EAT_END, EAT_START, INNER_CIRC);
+    // Arcs
+    var fa = arcDash(p.eatEnd, p.eatStart, INNER_CIRC);
     fastArc.setAttribute("stroke-dasharray", fa.dash + " " + (INNER_CIRC - fa.dash));
     fastArc.setAttribute("stroke-dashoffset", fa.offset);
 
-    // Eating arc: EAT_START → EAT_END
-    var ea = arcDash(EAT_START, EAT_END, INNER_CIRC);
+    var ea = arcDash(p.eatStart, p.eatEnd, INNER_CIRC);
     eatArc.setAttribute("stroke-dasharray", ea.dash + " " + (INNER_CIRC - ea.dash));
     eatArc.setAttribute("stroke-dashoffset", ea.offset);
 
-    // Time hand + dot (continuous, minutes-level)
+    // Time hand + dot
     var angle = (curH / 24) * 2 * Math.PI;
     var dx = 200 + OUTER_R * Math.cos(angle);
     var dy = 200 + OUTER_R * Math.sin(angle);
@@ -529,33 +938,125 @@ header {
     timeHand.setAttribute("x2", dx);
     timeHand.setAttribute("y2", dy);
 
-    // Status
-    if (inEat) {
-      statusText.innerHTML = 'Eating · <span class="highlight">' + fmtCountdown(EAT_END - curH) + '</span> until fast';
-      eatBtn.classList.add("eating");
-      eatBtn.querySelector(".label").textContent = "FAST";
-      eatBtn.querySelector(".icon").textContent = "⏳";
+    // Status + button
+    if (state.fastStart !== null) {
+      var elapsed = (Date.now() - state.fastStart) / 3600000;
+      statusText.innerHTML = 'Fasting · <span class="highlight">' + fmtCountdown(elapsed) + '</span> elapsed';
+      actionBtn.classList.add("fasting");
+      actionBtn.querySelector(".label").textContent = "BREAK FAST";
+      actionBtn.querySelector(".icon").textContent = "\uD83C\uDF5D";
+    } else if (inEat) {
+      statusText.innerHTML = 'Eating · <span class="highlight">' + fmtCountdown(timeUntilEatEnd(curH, p)) + '</span> until fast';
+      actionBtn.classList.remove("fasting");
+      actionBtn.querySelector(".label").textContent = "START FAST";
+      actionBtn.querySelector(".icon").textContent = "\u23F3";
     } else {
-      var nextEatStart = curH < EAT_START ? EAT_START : EAT_START + 24;
-      var remaining = nextEatStart - curH;
-      statusText.innerHTML = 'Fasting · <span class="highlight">' + fmtCountdown(remaining) + '</span> remaining';
-      eatBtn.classList.remove("eating");
-      eatBtn.querySelector(".label").textContent = "EAT";
-      eatBtn.querySelector(".icon").textContent = "🍽";
+      statusText.innerHTML = 'Fasting · <span class="highlight">' + fmtCountdown(timeUntilEatStart(curH, p)) + '</span> remaining';
+      actionBtn.classList.remove("fasting");
+      actionBtn.querySelector(".label").textContent = "START FAST";
+      actionBtn.querySelector(".icon").textContent = "\u23F3";
     }
 
-    // Card
-    windowTimes.textContent = fmtHour(EAT_START) + " – " + fmtHour(EAT_END);
-    windowDuration.textContent = EAT_HOURS + " hours";
+    // Eat card
+    windowTimes.textContent = fmtHour(p.eatStart) + " – " + fmtHour(p.eatEnd);
+    windowDuration.textContent = p.eat + " hours";
     if (inEat) {
-      windowCountdown.textContent = "Closes in " + fmtCountdown(EAT_END - curH);
+      windowCountdown.textContent = "Closes in " + fmtCountdown(timeUntilEatEnd(curH, p));
     } else {
-      windowCountdown.textContent = "Opens in " + fmtCountdown(remaining);
+      windowCountdown.textContent = "Opens in " + fmtCountdown(timeUntilEatStart(curH, p));
+    }
+
+    // Stats
+    statFast.textContent = p.fast + "h";
+    statEat.textContent = p.eat + "h";
+    statScore.textContent = state.dailyScore;
+    statStreak.textContent = calcStreak();
+
+    // Protocol badge
+    protocolBadge.textContent = state.protocol === "custom"
+      ? state.customEatStart + ":" + state.customEatEnd
+      : state.protocol;
+
+    // Weigh-in
+    renderWeighIn();
+  }
+
+  // ── Protocol panel ──
+  function buildProtocolList() {
+    protocolList.innerHTML = "";
+    for (var key in PROTOCOLS) {
+      var p = PROTOCOLS[key];
+      var item = document.createElement("div");
+      item.className = "protocol-item" + (state.protocol === key ? " active" : "");
+      item.setAttribute("data-protocol", key);
+      item.innerHTML = "<div>" + key + "</div><div class='desc'>" + p.desc + "</div>";
+      (function(k) {
+        item.addEventListener("click", function() { selectProtocol(k); });
+      })(key);
+      protocolList.appendChild(item);
     }
   }
 
+  function selectProtocol(key) {
+    state.protocol = key;
+    if (key === "custom") {
+      customFields.style.display = "flex";
+      document.getElementById("customEatStart").value = state.customEatStart;
+      document.getElementById("customEatEnd").value = state.customEatEnd;
+    } else {
+      customFields.style.display = "none";
+    }
+    protocolDesc.textContent = PROTOCOLS[key].desc;
+    buildProtocolList();
+    buildInnerLabels();
+    saveState();
+    render();
+  }
+
+  // ── Start / Break Fast ──
+  function startFast() {
+    var now = new Date();
+    var curH = now.getHours() + now.getMinutes() / 60;
+    var p = getProtocol();
+    state.fastStart = Date.now();
+    if (inEatingWindow(curH, p)) {
+      state.dailyScore = Math.max(0, state.dailyScore - 10);
+    }
+    saveState();
+    render();
+  }
+
+  function breakFast() {
+    if (state.fastStart === null) { return; }
+    var now = Date.now();
+    var duration = (now - state.fastStart) / 3600000;
+    var curH = new Date().getHours() + new Date().getMinutes() / 60;
+    var p = getProtocol();
+    var onTime = inEatingWindow(curH, p);
+    if (!onTime) {
+      state.dailyScore = Math.max(0, state.dailyScore - 10);
+    }
+    state.fastHistory.push({
+      start: state.fastStart,
+      end: now,
+      duration: duration,
+      onTime: onTime
+    });
+    state.fastStart = null;
+    saveState();
+    render();
+  }
+
   // ── Events ──
-  eatBtn.addEventListener("click", function() {
+  actionBtn.addEventListener("click", function() {
+    if (state.fastStart !== null) {
+      breakFast();
+    } else {
+      startFast();
+    }
+  });
+
+  infoBtn.addEventListener("click", function() {
     eatCard.classList.toggle("visible");
   });
 
@@ -563,6 +1064,68 @@ header {
     eatCard.classList.remove("visible");
   });
 
+  protocolBadge.addEventListener("click", function(e) {
+    e.stopPropagation();
+    protocolPanel.classList.toggle("visible");
+    if (protocolPanel.classList.contains("visible")) {
+      buildProtocolList();
+      protocolDesc.textContent = PROTOCOLS[state.protocol].desc;
+      if (state.protocol === "custom") {
+        customFields.style.display = "flex";
+      } else {
+        customFields.style.display = "none";
+      }
+    }
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!protocolPanel.contains(e.target) && e.target !== protocolBadge) {
+      protocolPanel.classList.remove("visible");
+    }
+  });
+
+  document.getElementById("customEatStart").addEventListener("change", function() {
+    state.customEatStart = parseInt(this.value, 10);
+    if (isNaN(state.customEatStart) || state.customEatStart < 0 || state.customEatStart > 23) {
+      state.customEatStart = 12;
+    }
+    saveState();
+    buildInnerLabels();
+    render();
+  });
+
+  document.getElementById("customEatEnd").addEventListener("change", function() {
+    state.customEatEnd = parseInt(this.value, 10);
+    if (isNaN(state.customEatEnd) || state.customEatEnd < 0 || state.customEatEnd > 23) {
+      state.customEatEnd = 18;
+    }
+    saveState();
+    buildInnerLabels();
+    render();
+  });
+
+  weighBtn.addEventListener("click", function() {
+    weighInput.style.display = "flex";
+    weighInputField.focus();
+  });
+
+  weighSave.addEventListener("click", function() {
+    var val = parseFloat(weighInputField.value);
+    if (!isNaN(val) && val > 0) {
+      state.weightLog.push({
+        date: new Date().toISOString(),
+        weight: val
+      });
+      saveState();
+      weighInput.style.display = "none";
+      weighInputField.value = "";
+      render();
+    }
+  });
+
+  // ── Init ──
+  loadState();
+  buildInnerLabels();
   render();
   setInterval(render, 1000);
 })();
