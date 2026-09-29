@@ -175,6 +175,40 @@ header {
   line-height: 1.4;
 }
 
+.protocol-guidance {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: var(--sp-2);
+  line-height: 1.5;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-2);
+}
+
+.protocol-guidance .g-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-2);
+  margin-bottom: 4px;
+}
+
+.protocol-guidance .g-coffee {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--surface-2);
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.protocol-guidance .g-coffee .icon {
+  font-size: 13px;
+  margin-right: 4px;
+}
+
 /* ── Clock ── */
 .clock-wrap {
   position: relative;
@@ -563,6 +597,7 @@ header {
     </label>
   </div>
   <p class="protocol-desc" id="protocolDesc"></p>
+  <div class="protocol-guidance" id="protocolGuidance"></div>
 </div>
 
 <div class="clock-wrap">
@@ -720,6 +755,7 @@ header {
   var protocolList = document.getElementById("protocolList");
   var customFields = document.getElementById("customFields");
   var protocolDesc = document.getElementById("protocolDesc");
+  var protocolGuidance = document.getElementById("protocolGuidance");
   var infoBtn = document.getElementById("infoBtn");
   var statFast = document.getElementById("statFast");
   var statEat = document.getElementById("statEat");
@@ -1011,8 +1047,41 @@ header {
     protocolDesc.textContent = PROTOCOLS[key].desc;
     buildProtocolList();
     buildInnerLabels();
+    updateGuidance();
     saveState();
     render();
+  }
+
+  function updateGuidance() {
+    var p = getProtocol();
+    var parts = [];
+    var eatH = p.eat;
+    var endH = p.eatEnd;
+
+    // Duration-based guidance
+    if (eatH <= 4) {
+      parts.push("Most restrictive. Strongest calorie reduction but hardest to sustain.");
+    } else if (eatH <= 6) {
+      parts.push("Good balance. Moderate reduction, well-supported by research.");
+    } else if (eatH <= 8) {
+      parts.push("Most studied (16:8). Modest loss (~1\u20132 kg/12 wks). Easiest to maintain.");
+    } else {
+      parts.push("Mild restriction. May not create meaningful deficit.");
+    }
+
+    // Time-of-day guidance
+    if (endH <= 14) {
+      parts.push("Earlier window aligns with peak insulin sensitivity.");
+    } else if (endH <= 18) {
+      parts.push("Neutral timing. Fine for most schedules.");
+    } else {
+      parts.push("Consider shifting earlier for better metabolic alignment.");
+    }
+
+    protocolGuidance.innerHTML =
+      '<div class="g-title">Guidance</div>' +
+      parts.join(" ") +
+      '<div class="g-coffee"><span class="icon">☕</span>Black coffee is fasting-safe. A splash of milk is fine for weight-loss goals. Keep it to 1\u20132 cups \u2014 excess caffeine disrupts sleep and raises cortisol.</div>';
   }
 
   // ── Start / Break Fast ──
@@ -1093,6 +1162,7 @@ header {
     }
     saveState();
     buildInnerLabels();
+    updateGuidance();
     render();
   });
 
@@ -1103,6 +1173,7 @@ header {
     }
     saveState();
     buildInnerLabels();
+    updateGuidance();
     render();
   });
 
@@ -1128,6 +1199,7 @@ header {
   // ── Init ──
   loadState();
   buildInnerLabels();
+  updateGuidance();
   render();
   setInterval(render, 1000);
 })();
