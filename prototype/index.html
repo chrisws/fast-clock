@@ -612,7 +612,7 @@ header {
   </div>
   <button class="weigh-btn" id="weighBtn">+ Log</button>
   <div class="weigh-input" id="weighInput" style="display:none">
-    <input type="number" id="weighInputField" step="0.1" min="0" placeholder="lbs">
+    <input type="number" id="weighInputField" step="0.1" min="0" placeholder="kg">
     <button id="weighSave">Save</button>
   </div>
 </div>
@@ -766,7 +766,7 @@ header {
     line.setAttribute("stroke-width", isMajor ? 2 : 1);
     outerTicks.appendChild(line);
 
-    var lr = 148;
+    var lr = 153;
     var lx = 200 + lr * Math.cos(angle);
     var ly = 200 + lr * Math.sin(angle);
     var txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -774,6 +774,7 @@ header {
     txt.setAttribute("y", ly);
     txt.setAttribute("text-anchor", "middle");
     txt.setAttribute("dominant-baseline", "central");
+    txt.setAttribute("transform", "rotate(90," + lx + "," + ly + ")");
     txt.setAttribute("class", "hour-label");
     if (isMajor) {
       txt.setAttribute("font-size", "12");
@@ -806,6 +807,7 @@ header {
     txt.setAttribute("y", ly);
     txt.setAttribute("text-anchor", "middle");
     txt.setAttribute("dominant-baseline", "central");
+    txt.setAttribute("transform", "rotate(90," + lx + "," + ly + ")");
     txt.setAttribute("font-size", "10");
     txt.setAttribute("font-weight", "600");
     txt.setAttribute("fill", color);
@@ -901,7 +903,7 @@ header {
       return;
     }
     var latest = state.weightLog[state.weightLog.length - 1];
-    weighValue.textContent = latest.weight + " lb";
+    weighValue.textContent = latest.weight + " kg";
     if (state.weightLog.length > 1) {
       var first = state.weightLog[0];
       var diff = latest.weight - first.weight;
