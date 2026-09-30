@@ -1,19 +1,15 @@
 package com.fastclock.ui.clock
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.DrawScope
 import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.withSave
-import androidx.compose.ui.unit.dp
 import com.fastclock.model.ResolvedProtocol
 import com.fastclock.ui.theme.Accent
 import com.fastclock.ui.theme.Accent2

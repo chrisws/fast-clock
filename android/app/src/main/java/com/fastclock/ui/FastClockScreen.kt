@@ -35,16 +35,12 @@ import com.fastclock.model.FastSession
 import com.fastclock.model.FastState
 import com.fastclock.model.Protocol
 import com.fastclock.model.ResolvedProtocol
-import com.fastclock.ui.ProtocolPanel
-import com.fastclock.ui.WeighInDialog
 import com.fastclock.ui.clock.ClockCanvas
 import com.fastclock.ui.theme.Accent
 import com.fastclock.ui.theme.Accent2
 import com.fastclock.ui.theme.Accent2Dim
 import com.fastclock.ui.theme.Bg
-import com.fastclock.ui.theme.RingTrack
 import com.fastclock.ui.theme.Surface
-import com.fastclock.ui.theme.Surface2
 import com.fastclock.ui.theme.TextMuted
 import java.util.Calendar
 import java.util.Date
@@ -452,15 +448,15 @@ private fun fmtHour(h: Int): String {
 
 private fun calcStreak(history: List<FastSession>): Int {
     if (history.isEmpty()) return 0
-    val today = Date().toDateString()
-    val yesterday = Date(System.currentTimeMillis() - 86400000L).toDateString()
-    val lastDate = Date(history.last().endEpoch).toDateString()
+    val today = Date().toString()
+    val yesterday = Date(System.currentTimeMillis() - 86400000L).toString()
+    val lastDate = Date(history.last().endEpoch).toString()
     if (lastDate != today && lastDate != yesterday) return 0
 
     var streak = 1
     for (i in history.size - 2 downTo 0) {
-        val d = Date(history[i].endEpoch).toDateString()
-        val prevD = Date(history[i + 1].endEpoch).toDateString()
+        val d = Date(history[i].endEpoch).toString()
+        val prevD = Date(history[i + 1].endEpoch).toString()
         val diff = (Date(prevD).time - Date(d).time) / 86400000L
         if (diff == 1L) {
             streak++
