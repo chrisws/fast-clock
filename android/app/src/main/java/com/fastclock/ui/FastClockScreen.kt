@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,10 +46,11 @@ import com.fastclock.ui.theme.TextMuted
 import java.util.Calendar
 import java.util.Date
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
-    var currentHour by remember { mutableStateOf(0f) }
+    var currentHour by remember { mutableFloatStateOf(0f) }
     var showProtocolPanel by remember { mutableStateOf(false) }
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
@@ -60,7 +62,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
             currentHour = cal.get(Calendar.HOUR_OF_DAY) +
                     cal.get(Calendar.MINUTE) / 60f +
                     cal.get(Calendar.SECOND) / 3600f
-            kotlinx.coroutines.delay(1000L)
+            kotlinx.coroutines.delay(1000L.milliseconds)
         }
     }
 
@@ -140,12 +142,12 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                         if (isFasting) {
                             // Break fast: record session, apply score penalty
                             val now = System.currentTimeMillis()
-                            val duration = (now - (state.fastStartEpoch ?: now)) / 3600000.0
+                            val duration = (now - state.fastStartEpoch) / 3600000.0
                             val onTime = isInEatingWindow(currentHour, p)
                             val newScore = if (onTime) state.dailyScore
                                 else maxOf(0, state.dailyScore - 10)
                             val session = FastSession(
-                                startEpoch = state.fastStartEpoch ?: now,
+                                startEpoch = state.fastStartEpoch,
                                 endEpoch = now,
                                 durationHours = duration,
                                 onTime = onTime

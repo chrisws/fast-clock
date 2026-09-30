@@ -18,6 +18,7 @@ import com.fastclock.ui.theme.TextMuted
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.core.graphics.withRotation
 
 /**
  * 24-hour circular clock with outer time ring and inner fasting/eating arcs.
@@ -52,8 +53,8 @@ fun ClockCanvas(
             val isMid = h % 3 == 0
             val r1 = if (isMajor) outerR * 0.93f else if (isMid) outerR * 0.947f else outerR * 0.965f
             val r2 = outerR * 0.988f
-            val cosA = cos(angle).toFloat()
-            val sinA = sin(angle).toFloat()
+            val cosA = cos(angle)
+            val sinA = sin(angle)
             val x1 = cx + r1 * cosA
             val y1 = cy + r1 * sinA
             val x2 = cx + r2 * cosA
@@ -75,16 +76,15 @@ fun ClockCanvas(
                 isMid -> size.minDimension * 0.025f
                 else -> size.minDimension * 0.02f
             }
-            nativeCanvas.save()
-            nativeCanvas.rotate(Math.toDegrees(angle.toDouble()).toFloat() + 90f, lx, ly)
-            val paint = android.graphics.Paint().apply {
-                color = TextMuted.argbInt()
-                textSize = fontSize
-                textAlign = android.graphics.Paint.Align.CENTER
-                isAntiAlias = true
+            nativeCanvas.withRotation(Math.toDegrees(angle.toDouble()).toFloat() + 90f, lx, ly) {
+                val paint = android.graphics.Paint().apply {
+                    color = TextMuted.argbInt()
+                    textSize = fontSize
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    isAntiAlias = true
+                }
+                drawText(label, lx, ly + fontSize / 3f, paint)
             }
-            nativeCanvas.drawText(label, lx, ly + fontSize / 3f, paint)
-            nativeCanvas.restore()
         }
 
         // ── Inner ring track ──
@@ -124,8 +124,8 @@ fun ClockCanvas(
 
         // ── Time hand ──
         val timeAngle = (currentHour / 24f) * 2f * pi
-        val hx = cx + outerR * cos(timeAngle).toFloat()
-        val hy = cy + outerR * sin(timeAngle).toFloat()
+        val hx = cx + outerR * cos(timeAngle)
+        val hy = cy + outerR * sin(timeAngle)
         drawLine(
             color = TextMuted,
             start = Offset(cx, cy),
@@ -151,19 +151,18 @@ private fun drawInnerLabelText(
 ) {
     val pi = PI.toFloat()
     val angle = (hour / 24f) * 2f * pi
-    val lx = cx + r * cos(angle).toFloat()
-    val ly = cy + r * sin(angle).toFloat()
-    canvas.save()
-    canvas.rotate(Math.toDegrees(angle.toDouble()).toFloat() + 90f, lx, ly)
-    val paint = android.graphics.Paint().apply {
-        this.color = color.argbInt()
-        textSize = minDim * 0.025f
-        textAlign = android.graphics.Paint.Align.CENTER
-        isAntiAlias = true
-        isFakeBoldText = true
+    val lx = cx + r * cos(angle)
+    val ly = cy + r * sin(angle)
+    canvas.withRotation(Math.toDegrees(angle.toDouble()).toFloat() + 90f, lx, ly) {
+        val paint = android.graphics.Paint().apply {
+            this.color = color.argbInt()
+            textSize = minDim * 0.025f
+            textAlign = android.graphics.Paint.Align.CENTER
+            isAntiAlias = true
+            isFakeBoldText = true
+        }
+        drawText(text, lx, ly + minDim * 0.008f, paint)
     }
-    canvas.drawText(text, lx, ly + minDim * 0.008f, paint)
-    canvas.restore()
 }
 
 private fun Color.argbInt(): Int {
