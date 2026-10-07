@@ -54,6 +54,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showProtocolPanel by remember { mutableStateOf(false) }
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
+    var timeString by remember { mutableStateOf("") }
 
     // Tick every second
     LaunchedEffect(Unit) {
@@ -62,11 +63,21 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
             currentHour = cal.get(Calendar.HOUR_OF_DAY) +
                     cal.get(Calendar.MINUTE) / 60f +
                     cal.get(Calendar.SECOND) / 3600f
+            val h12 = if (cal.get(Calendar.HOUR_OF_DAY) % 12 == 0) 12 else cal.get(Calendar.HOUR_OF_DAY) % 12
+            val ap = if (cal.get(Calendar.HOUR_OF_DAY) < 12) "AM" else "PM"
+            timeString = "$h12:${"%02d".format(cal.get(Calendar.MINUTE))} $ap"
             kotlinx.coroutines.delay(1000L.milliseconds)
         }
     }
 
-    val p = state.resolvedProtocol()
+    val baseProtocol = state.resolvedProtocol()
+    val p = if (state.clockMode) {
+        val eatStart = currentHour.toInt() % 24
+        val eatEnd = (eatStart + baseProtocol.eatHours) % 24
+        ResolvedProtocol(24 - baseProtocol.eatHours, baseProtocol.eatHours, eatStart, eatEnd)
+    } else {
+        baseProtocol
+    }
     val isFasting = state.fastStartEpoch != null
     val inEatWindow = isInEatingWindow(currentHour, p)
     val streak = calcStreak(state.fastHistory)
@@ -105,6 +116,20 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Clock mode toggle
+                    Box(
+                        modifier = Modifier
+                            .background(if (state.clockMode) Accent2Dim else Surface, RoundedCornerShape(20.dp))
+                            .clickable { onStateChange(state.copy(clockMode = !state.clockMode)) }
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = if (state.clockMode) "CLOCK ON" else "CLOCK OFF",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = if (state.clockMode) Accent2 else TextMuted
+                        )
+                    }
                     // Weigh-in button
                     Box(
                         modifier = Modifier
@@ -201,6 +226,14 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                     Text(text = "\u24D8", fontSize = 14.sp, color = TextMuted)
                 }
             }
+
+            // ── Digital clock ──
+            Text(
+                text = timeString,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (state.clockMode) Accent2 else TextMuted
+            )
 
             // ── Status ──
             Spacer(modifier = Modifier.height(16.dp))

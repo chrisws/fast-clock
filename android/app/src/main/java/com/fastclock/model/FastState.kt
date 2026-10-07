@@ -27,6 +27,7 @@ data class FastState(
     val protocol: Protocol = Protocol.P18_6,
     val customEatStart: Int = 12,
     val customEatEnd: Int = 18,
+    val clockMode: Boolean = false,
     val fastStartEpoch: Long? = null,
     val dailyScore: Int = 100,
     val scoreDate: String = "",
