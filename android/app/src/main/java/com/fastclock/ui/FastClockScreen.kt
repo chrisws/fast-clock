@@ -51,7 +51,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var currentHour by remember { mutableFloatStateOf(0f) }
-    var showProtocolPanel by remember { mutableStateOf(false) }
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
@@ -96,7 +95,6 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
             TopBar(
                 state = state,
                 onStateChange = onStateChange,
-                onToggleProtocol = { showProtocolPanel = !showProtocolPanel },
                 onWeighIn = { showWeighIn = true },
                 setupMode = setupMode,
                 onToggleSetup = { setupMode = !setupMode }
@@ -152,25 +150,6 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
             )
         }
 
-        // ── Protocol panel overlay ──
-        if (showProtocolPanel) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Bg.copy(alpha = 0.6f))
-                    .clickable { showProtocolPanel = false },
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                ProtocolPanel(
-                    state = state,
-                    onStateChange = onStateChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 24.dp)
-                )
-            }
-        }
-
         // ── Weigh-in dialog ──
         if (showWeighIn) {
             WeighInDialog(
@@ -198,7 +177,6 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
 private fun TopBar(
     state: FastState,
     onStateChange: (FastState) -> Unit,
-    onToggleProtocol: () -> Unit,
     onWeighIn: () -> Unit,
     setupMode: Boolean,
     onToggleSetup: () -> Unit
@@ -208,11 +186,10 @@ private fun TopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Protocol badge
+        // Protocol badge (display only)
         Box(
             modifier = Modifier
                 .background(Accent2Dim, RoundedCornerShape(20.dp))
-                .clickable { onToggleProtocol() }
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
@@ -249,28 +226,15 @@ private fun TopBar(
             ) {
                 Text(text = "\u2696\uFE0F", fontSize = 20.sp)
             }
-            // Settings button
+            // Setup mode toggle (gear icon)
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .clickable { onToggleProtocol() },
+                    .background(if (setupMode) Accent2Dim else Surface, CircleShape)
+                    .clickable { onToggleSetup() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "\u2699\uFE0F", fontSize = 20.sp)
-            }
-            // Setup mode toggle
-            Box(
-                modifier = Modifier
-                    .background(if (setupMode) Accent2Dim else Surface, RoundedCornerShape(20.dp))
-                    .clickable { onToggleSetup() }
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "SETUP",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = if (setupMode) Accent2 else TextMuted
-                )
             }
         }
     }
@@ -521,15 +485,28 @@ private fun EatWindowCard(
             Text(
                 text = "${fmtHour(protocol.eatStart)} \u2013 ${fmtHour(protocol.eatEnd)}",
                 fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Bg
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "${protocol.eatHours} hours",
+                text = "${protocol.eatHours}h eating \u00B7 ${protocol.fastHours}h fasting",
                 fontSize = 13.sp,
                 color = TextMuted
             )
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Benefit guidance
+            Text(
+                text = fastingBenefit(protocol.fastHours),
+                fontSize = 13.sp,
+                color = Accent2,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Box(
                 modifier = Modifier
                     .background(Accent2Dim, RoundedCornerShape(20.dp))
