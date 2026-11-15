@@ -1,9 +1,12 @@
 package com.fastclock
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,6 +14,7 @@ import com.fastclock.model.FastSession
 import com.fastclock.model.FastState
 import com.fastclock.model.Protocol
 import com.fastclock.model.WeighIn
+import com.fastclock.notification.FastWindowReceiver
 import com.fastclock.ui.FastClockScreen
 import com.fastclock.ui.theme.FastClockTheme
 
@@ -18,9 +22,30 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var prefs: android.content.SharedPreferences
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* permission result handled silently */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = getSharedPreferences("fastclock", Context.MODE_PRIVATE)
+
+        // Request notification permission on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        // Request exact-alarm permission on Android 12+ (not auto-granted)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val am = getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+            if (!am.canScheduleExactAlarms()) {
+                val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    .setData(android.net.Uri.parse("package:$packageName"))
+                startActivity(intent)
+            }
+        }
 
         val initialState = loadState()
 
@@ -33,10 +58,26 @@ class MainActivity : ComponentActivity() {
                     onStateChange = { newState ->
                         state = newState
                         saveState(newState)
+                        scheduleNotifications(newState)
                     }
                 )
             }
         }
+
+        scheduleNotifications(initialState)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reschedule alarms with current state (handles clock mode changes, protocol edits, etc.)
+        val current = loadState()
+        scheduleNotifications(current)
+    }
+
+    private fun scheduleNotifications(state: FastState) {
+        val p = state.resolvedProtocol()
+        FastWindowReceiver.ensureChannel(this)
+        FastWindowReceiver.scheduleWindowAlarms(this, p.eatStart, p.eatEnd)
     }
 
     // ── Persistence ──
