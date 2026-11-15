@@ -242,6 +242,17 @@ private fun TopBar(
                 )
             }
 
+            // Setup mode toggle (gear icon)
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(if (setupMode) Accent2Dim else Surface, CircleShape)
+                    .clickable { onToggleSetup() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "\u2699\uFE0F", fontSize = 20.sp)
+            }
+
             // Weigh-in button
             Box(
                 modifier = Modifier.size(40.dp).clickable { onWeighIn() },
@@ -256,17 +267,6 @@ private fun TopBar(
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
-            }
-
-            // Setup mode toggle (gear icon)
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(if (setupMode) Accent2Dim else Surface, CircleShape)
-                    .clickable { onToggleSetup() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "\u2699\uFE0F", fontSize = 20.sp)
             }
         }
     }
