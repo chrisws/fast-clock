@@ -362,7 +362,13 @@ private fun ClockArea(
                         fontSize = 26.sp
                     )
                     Text(
-                        text = if (isFasting) "BREAK FAST" else "START FAST",
+                        text = if (isFasting) "BREAK" else "START",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "FAST",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp
