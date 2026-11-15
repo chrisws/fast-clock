@@ -1,7 +1,10 @@
 package com.fastclock.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fastclock.BuildConfig
@@ -47,8 +46,6 @@ import com.fastclock.ui.theme.Surface
 import com.fastclock.ui.theme.Text
 import com.fastclock.ui.theme.TextMuted
 import java.util.Calendar
-import java.util.Date
-import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -192,6 +189,8 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 protocol = state.protocol,
                 fastHours = p.fastHours,
                 eatHours = p.eatHours,
+                eatStart = p.eatStart,
+                eatEnd = p.eatEnd,
                 onDismiss = { showProtocolInfo = false }
             )
         }
@@ -241,18 +240,6 @@ private fun TopBar(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Clock mode toggle
-            Box(
-                modifier = Modifier.size(40.dp).clickable { onStateChange(state.copy(clockMode = !state.clockMode)) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "\u23F0",
-                    fontSize = 20.sp,
-                    color = if (state.clockMode) Accent2 else TextMuted
-                )
-            }
-
             // Setup mode toggle (gear icon)
             Box(
                 modifier = Modifier
@@ -293,6 +280,7 @@ private fun TopBar(
 
 // ── Clock area: canvas + center button + digital time ──
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ClockArea(
     protocol: ResolvedProtocol,
@@ -316,64 +304,83 @@ private fun ClockArea(
             onProtocolChange = onProtocolChange
         )
 
-        // Center button
-        Button(
-            onClick = {
-                if (isFasting) {
-                    // Break fast: record session, apply score penalty
-                    val startEpoch = state.fastStartEpoch!!
-                    val now = System.currentTimeMillis()
-                    val duration = (now - startEpoch) / 3600000.0
-                    val onTime = isInEatingWindow(currentHour, protocol)
-                    val newScore = if (onTime) state.dailyScore
-                        else maxOf(0, state.dailyScore - 10)
-                    val session = FastSession(
-                        startEpoch = startEpoch,
-                        endEpoch = now,
-                        durationHours = duration,
-                        onTime = onTime
-                    )
-                    onStateChange(state.copy(
-                        fastStartEpoch = null,
-                        dailyScore = newScore,
-                        fastHistory = state.fastHistory + session
-                    ))
-                } else {
-                    // Start fast: penalty if in eating window
-                    val newScore = if (inEatWindow) maxOf(0, state.dailyScore - 10)
-                        else state.dailyScore
-                    onStateChange(state.copy(
-                        fastStartEpoch = System.currentTimeMillis(),
-                        dailyScore = newScore
-                    ))
-                }
-            },
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isFasting) Accent else Surface,
-                contentColor = if (isFasting) Bg else MaterialTheme.colorScheme.onSurface
-            ),
-            modifier = Modifier.size(110.dp)
+        // Center button: tap to start/break fast, long-press to toggle rolling mode
+        Box(
+            modifier = Modifier
+                .size(110.dp)
+                .background(if (isFasting) Accent else Surface, CircleShape)
+                .combinedClickable(
+                    onClick = {
+                        if (isFasting) {
+                            // Break fast: record session, apply score penalty
+                            val startEpoch = state.fastStartEpoch!!
+                            val now = System.currentTimeMillis()
+                            val duration = (now - startEpoch) / 3600000.0
+                            val onTime = isInEatingWindow(currentHour, protocol)
+                            val newScore = if (onTime) state.dailyScore
+                                else maxOf(0, state.dailyScore - 10)
+                            val session = FastSession(
+                                startEpoch = startEpoch,
+                                endEpoch = now,
+                                durationHours = duration,
+                                onTime = onTime
+                            )
+                            onStateChange(state.copy(
+                                fastStartEpoch = null,
+                                dailyScore = newScore,
+                                fastHistory = state.fastHistory + session
+                            ))
+                        } else {
+                            // Start fast: penalty if in eating window
+                            val newScore = if (inEatWindow) maxOf(0, state.dailyScore - 10)
+                                else state.dailyScore
+                            onStateChange(state.copy(
+                                fastStartEpoch = System.currentTimeMillis(),
+                                dailyScore = newScore
+                            ))
+                        }
+                    },
+                    onLongClick = { onStateChange(state.copy(clockMode = !state.clockMode)) }
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = if (isFasting) "\uD83C\uDF5D" else "\u23F3",
-                        fontSize = 26.sp
-                    )
-                    Text(
-                        text = if (isFasting) "BREAK" else "START",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                    Text(
-                        text = "FAST",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = if (isFasting) "\uD83C\uDF5D" else "\u23F3",
+                    fontSize = 26.sp,
+                    color = if (isFasting) Bg else TextMuted
+                )
+                Text(
+                    text = if (isFasting) "BREAK" else "START",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    color = if (isFasting) Bg else TextMuted
+                )
+                Text(
+                    text = "FAST",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    color = if (isFasting) Bg else TextMuted
+                )
+
+                // Rolling mode indicator (small dot when active)
+                if (state.clockMode) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier.size(6.dp).background(Accent2, CircleShape)
                     )
                 }
+            }
+
+            // Subtle ring when rolling mode is active
+            if (state.clockMode) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .border(2.dp, Accent2.copy(alpha = 0.5f), CircleShape)
+                )
             }
         }
 
@@ -659,6 +666,8 @@ private fun ProtocolInfoDialog(
     protocol: Protocol,
     fastHours: Int,
     eatHours: Int,
+    eatStart: Int,
+    eatEnd: Int,
     onDismiss: () -> Unit
 ) {
     Box(
@@ -674,7 +683,9 @@ private fun ProtocolInfoDialog(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("${fastHours}:${eatHours}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Accent2)
+            Text("${fmtHour(eatStart)} \u2013 ${fmtHour(eatEnd)}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Accent2)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("eating window", fontSize = 13.sp, color = TextMuted)
             Spacer(modifier = Modifier.height(12.dp))
             Text("${fastHours}h fasting \u00B7 ${eatHours}h eating", fontSize = 14.sp, color = TextMuted)
             Spacer(modifier = Modifier.height(8.dp))

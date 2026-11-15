@@ -120,10 +120,10 @@ fun computeDailyScores(history: List<FastSession>, targetFastHours: Int): List<D
         var score = 100
         var totalHours = 0.0
 
-        for (s in sessions) {
-            totalHours += s.durationHours
-            if (!s.onTime) score -= 10
-            if (s.durationHours < targetFastHours * 0.8) score -= 5
+        for ((_, _, durationHours, onTime) in sessions) {
+            totalHours += durationHours
+            if (!onTime) score -= 10
+            if (durationHours < targetFastHours * 0.8) score -= 5
         }
 
         score = score.coerceIn(0, 100)

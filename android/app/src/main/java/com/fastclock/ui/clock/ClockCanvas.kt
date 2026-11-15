@@ -241,7 +241,7 @@ private fun positionToHour(pos: Offset, canvasSize: Size): Float {
     val cy = canvasSize.height / 2f
     val dx = pos.x - cx
     val dy = pos.y - cy
-    var angle = atan2(dy.toDouble(), dx.toDouble()).toFloat() // -π..π, 0=right, +ve=clockwise (screen)
+    val angle = atan2(dy.toDouble(), dx.toDouble()).toFloat() // -π..π, 0=right, +ve=clockwise (screen)
     var clockAngle = angle + PI.toFloat() / 2f // shift so 0=top
     if (clockAngle < 0f) clockAngle += 2f * PI.toFloat()
     return clockAngle / (2f * PI.toFloat()) * 24f
@@ -254,7 +254,7 @@ private fun determineDragMode(touchHour: Float, p: ResolvedProtocol): Int {
     if (distToStart <= EDGE_TOLERANCE) return DRAG_RESIZE_START
     if (distToEnd <= EDGE_TOLERANCE) return DRAG_RESIZE_END
 
-    // If touching the fasting arc (not eating), allow rotate
+    // If touching the fasting arc (not eating), allow to rotate
     if (!isInEatingRange(touchHour, p.eatStart, p.eatEnd)) return DRAG_ROTATE
 
     return DRAG_NONE
