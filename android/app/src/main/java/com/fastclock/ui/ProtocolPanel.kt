@@ -1,5 +1,6 @@
 package com.fastclock.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -79,7 +80,7 @@ fun ProtocolPanel(
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = if (state.protocol == Protocol.CUSTOM) Accent2 else TextMuted
             ),
-            border = androidx.compose.foundation.BorderStroke(
+            border = BorderStroke(
                 1.dp,
                 if (state.protocol == Protocol.CUSTOM) Accent2 else RingTrack
             )
@@ -123,7 +124,6 @@ private fun ProtocolButton(
 ) {
     Button(
         onClick = onClick,
-        //modifier = 0,//Modifier.weight(1f),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) Accent2 else Surface2,
