@@ -43,6 +43,7 @@ import com.fastclock.ui.theme.Accent2
 import com.fastclock.ui.theme.Accent2Dim
 import com.fastclock.ui.theme.Bg
 import com.fastclock.ui.theme.Surface
+import com.fastclock.ui.theme.Text
 import com.fastclock.ui.theme.TextMuted
 import java.util.Calendar
 import java.util.Date
@@ -55,6 +56,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
+    var showProtocolInfo by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
 
@@ -99,6 +101,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onStateChange = onStateChange,
                 onWeighIn = { showWeighIn = true },
                 onHistory = { showHistory = true },
+                onProtocolInfo = { showProtocolInfo = true },
                 setupMode = setupMode,
                 onToggleSetup = { setupMode = !setupMode }
             )
@@ -179,6 +182,16 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onDismiss = { showHistory = false }
             )
         }
+
+        // ── Protocol info popup ──
+        if (showProtocolInfo) {
+            ProtocolInfoDialog(
+                protocol = state.protocol,
+                fastHours = p.fastHours,
+                eatHours = p.eatHours,
+                onDismiss = { showProtocolInfo = false }
+            )
+        }
     }
 }
 
@@ -190,6 +203,7 @@ private fun TopBar(
     onStateChange: (FastState) -> Unit,
     onWeighIn: () -> Unit,
     onHistory: () -> Unit,
+    onProtocolInfo: () -> Unit,
     setupMode: Boolean,
     onToggleSetup: () -> Unit
 ) {
@@ -198,10 +212,11 @@ private fun TopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Protocol badge (display only)
+        // Protocol badge (tap for info)
         Box(
             modifier = Modifier
                 .background(Accent2Dim, RoundedCornerShape(20.dp))
+                .clickable { onProtocolInfo() }
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
@@ -514,7 +529,7 @@ private fun EatWindowCard(
                 text = "${fmtHour(protocol.eatStart)} \u2013 ${fmtHour(protocol.eatEnd)}",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Bg
+                color = Text
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -607,6 +622,44 @@ private fun statusText(
         }
         else -> {
             "Fasting \u00B7 ${fmtCountdown(timeUntilEatStart(curH, p))} remaining"
+        }
+    }
+}
+
+
+// ── Protocol info popup ──
+
+@Composable
+private fun ProtocolInfoDialog(
+    protocol: Protocol,
+    fastHours: Int,
+    eatHours: Int,
+    onDismiss: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(Bg.copy(alpha = 0.7f))
+            .clickable { onDismiss() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 32.dp)
+                .background(Surface, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("${fastHours}:${eatHours}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Accent2)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("${fastHours}h fasting \u00B7 ${eatHours}h eating", fontSize = 14.sp, color = TextMuted)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Stay within this window for your best daily score. " +
+                "Fasting shifts your body to fat burning and cellular cleanup.",
+                fontSize = 12.sp, color = TextMuted, textAlign = TextAlign.Center, lineHeight = 17.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
         }
     }
 }
