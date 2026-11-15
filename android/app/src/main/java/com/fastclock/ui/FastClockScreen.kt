@@ -497,7 +497,8 @@ private fun WeighInBar(state: FastState, onStateChange: (FastState) -> Unit) {
         Text(
             text = if (latest != null) "${latest.weightKg} kg" else "\u2014",
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Text
         )
         if (latest != null && first != null && state.weightLog.size > 1) {
             val diff = latest.weightKg - first.weightKg
