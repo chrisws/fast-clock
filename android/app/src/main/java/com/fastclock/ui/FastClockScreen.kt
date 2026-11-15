@@ -54,6 +54,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showProtocolPanel by remember { mutableStateOf(false) }
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
+    var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
 
     // Tick every second
@@ -96,7 +97,9 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 state = state,
                 onStateChange = onStateChange,
                 onToggleProtocol = { showProtocolPanel = !showProtocolPanel },
-                onWeighIn = { showWeighIn = true }
+                onWeighIn = { showWeighIn = true },
+                setupMode = setupMode,
+                onToggleSetup = { setupMode = !setupMode }
             )
 
             Box(
@@ -110,7 +113,15 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                     inEatWindow = inEatWindow,
                     state = state,
                     onStateChange = onStateChange,
-                    onToggleEatCard = { showEatCard = !showEatCard }
+                    onToggleEatCard = { showEatCard = !showEatCard },
+                    setupMode = setupMode,
+                    onProtocolChange = { eatStart, eatEnd ->
+                        onStateChange(state.copy(
+                            protocol = Protocol.CUSTOM,
+                            customEatStart = eatStart,
+                            customEatEnd = eatEnd
+                        ))
+                    }
                 )
             }
 
@@ -186,7 +197,9 @@ private fun TopBar(
     state: FastState,
     onStateChange: (FastState) -> Unit,
     onToggleProtocol: () -> Unit,
-    onWeighIn: () -> Unit
+    onWeighIn: () -> Unit,
+    setupMode: Boolean,
+    onToggleSetup: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -243,6 +256,20 @@ private fun TopBar(
             ) {
                 Text(text = "\u2699\uFE0F", fontSize = 20.sp)
             }
+            // Setup mode toggle
+            Box(
+                modifier = Modifier
+                    .background(if (setupMode) Accent2Dim else Surface, RoundedCornerShape(20.dp))
+                    .clickable { onToggleSetup() }
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "SETUP",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (setupMode) Accent2 else TextMuted
+                )
+            }
         }
     }
 }
@@ -257,7 +284,9 @@ private fun ClockArea(
     inEatWindow: Boolean,
     state: FastState,
     onStateChange: (FastState) -> Unit,
-    onToggleEatCard: () -> Unit
+    onToggleEatCard: () -> Unit,
+    setupMode: Boolean = false,
+    onProtocolChange: ((eatStart: Int, eatEnd: Int) -> Unit)? = null
 ) {
     Box(contentAlignment = Alignment.Center) {
         ClockCanvas(
@@ -265,7 +294,9 @@ private fun ClockArea(
             currentHour = currentHour,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            setupMode = setupMode,
+            onProtocolChange = onProtocolChange
         )
 
         // Center button

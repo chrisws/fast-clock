@@ -25,9 +25,9 @@ class MainActivity : ComponentActivity() {
         val initialState = loadState()
 
         setContent {
-            FastClockTheme {
-                var state by mutableStateOf(initialState)
+            var state by mutableStateOf(initialState)
 
+            FastClockTheme {
                 FastClockScreen(
                     state = state,
                     onStateChange = { newState ->
