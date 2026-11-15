@@ -232,15 +232,12 @@ private fun TopBar(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // Clock mode toggle
             Box(
-                modifier = Modifier
-                    .background(if (state.clockMode) Accent2Dim else Surface, RoundedCornerShape(20.dp))
-                    .clickable { onStateChange(state.copy(clockMode = !state.clockMode)) }
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                modifier = Modifier.size(40.dp).clickable { onStateChange(state.copy(clockMode = !state.clockMode)) },
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (state.clockMode) "CLOCK ON" else "CLOCK OFF",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
+                    text = "\u23F0",
+                    fontSize = 20.sp,
                     color = if (state.clockMode) Accent2 else TextMuted
                 )
             }
