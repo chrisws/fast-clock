@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fastclock.BuildConfig
 import com.fastclock.model.FastSession
 import com.fastclock.model.FastState
 import com.fastclock.model.Protocol
@@ -57,6 +58,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showEatCard by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
     var showProtocolInfo by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
 
@@ -102,6 +104,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onWeighIn = { showWeighIn = true },
                 onHistory = { showHistory = true },
                 onProtocolInfo = { showProtocolInfo = true },
+                onAbout = { showAbout = true },
                 setupMode = setupMode,
                 onToggleSetup = { setupMode = !setupMode }
             )
@@ -192,6 +195,13 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onDismiss = { showProtocolInfo = false }
             )
         }
+
+        // ── About dialog ──
+        if (showAbout) {
+            AboutDialog(
+                onDismiss = { showAbout = false }
+            )
+        }
     }
 }
 
@@ -204,6 +214,7 @@ private fun TopBar(
     onWeighIn: () -> Unit,
     onHistory: () -> Unit,
     onProtocolInfo: () -> Unit,
+    onAbout: () -> Unit,
     setupMode: Boolean,
     onToggleSetup: () -> Unit
 ) {
@@ -267,6 +278,14 @@ private fun TopBar(
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
+            }
+
+            // About button
+            Box(
+                modifier = Modifier.size(40.dp).clickable { onAbout() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "\u2139\uFE0F", fontSize = 20.sp)
             }
         }
     }
@@ -656,6 +675,62 @@ private fun ProtocolInfoDialog(
                 fontSize = 12.sp, color = TextMuted, textAlign = TextAlign.Center, lineHeight = 17.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
+            Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
+        }
+    }
+}
+
+// ── About dialog ──
+
+@Composable
+private fun AboutDialog(onDismiss: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(Bg.copy(alpha = 0.7f))
+            .clickable { onDismiss() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 32.dp)
+                .background(Surface, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Fast Clock", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Text)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("v${BuildConfig.VERSION_NAME}", fontSize = 13.sp, color = TextMuted)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Made with Hali", fontSize = 13.sp, color = Accent2)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                "PRIVACY",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextMuted,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                "\u2022 No data is collected or shared with third parties\n" +
+                "\u2022 All data is stored locally on your device only\n" +
+                "\u2022 No ads, tracking, or analytics SDKs\n" +
+                "\u2022 No permissions beyond app functionality\n" +
+                "\u2022 All data is removed when you uninstall the app",
+                fontSize = 12.sp,
+                color = TextMuted,
+                textAlign = TextAlign.Start,
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
         }
     }
