@@ -4,6 +4,7 @@ import com.fastclock.model.FastSession
 import com.fastclock.model.ResolvedProtocol
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -224,5 +225,75 @@ class ClockLogicTest {
             durationHours = 18.0, onTime = true
         )
         assertEquals("Consecutive calendar days at different times should give streak 2", 2, calcStreak(listOf(day1, day2)))
+    }
+
+    // ── fastingBenefit ──
+
+    @Test
+    fun `fastingBenefit - zero hours`() {
+        assertEquals("No fasting", fastingBenefit(0))
+    }
+
+    @Test
+    fun `fastingBenefit - negative hours`() {
+        assertEquals("No fasting", fastingBenefit(-3))
+    }
+
+    @Test
+    fun `fastingBenefit - under 12h`() {
+        val result = fastingBenefit(10)
+        assertTrue(result.contains("No significant"))
+    }
+
+    @Test
+    fun `fastingBenefit - 12 to 13h`() {
+        val result = fastingBenefit(12)
+        assertTrue(result.contains("Metabolic switch"))
+    }
+
+    @Test
+    fun `fastingBenefit - 14 to 15h`() {
+        val result = fastingBenefit(14)
+        assertTrue(result.contains("Glycogen depletion"))
+    }
+
+    @Test
+    fun `fastingBenefit - 16 to 17h`() {
+        val result = fastingBenefit(16)
+        assertTrue(result.contains("Autophagy onset"))
+    }
+
+    @Test
+    fun `fastingBenefit - 18 to 19h`() {
+        val result = fastingBenefit(18)
+        assertTrue(result.contains("Enhanced autophagy"))
+        assertTrue(result.contains("ketosis"))
+    }
+
+    @Test
+    fun `fastingBenefit - 20 to 23h`() {
+        val result = fastingBenefit(20)
+        assertTrue(result.contains("Deep ketosis"))
+        assertTrue(result.contains("GH spike"))
+    }
+
+    @Test
+    fun `fastingBenefit - 24h and above`() {
+        val result = fastingBenefit(24)
+        assertTrue(result.contains("Extended fast"))
+        assertTrue(result.contains("Stem cell"))
+    }
+
+    @Test
+    fun `fastingBenefit - boundary values are consistent`() {
+        // Each boundary should give a different tier than the one below
+        val tiers = (0..30).map { fastingBenefit(it) }
+        // Verify monotonic progression: tier at 12 != tier at 11, etc.
+        assertNotEquals(fastingBenefit(11), fastingBenefit(12))
+        assertNotEquals(fastingBenefit(13), fastingBenefit(14))
+        assertNotEquals(fastingBenefit(15), fastingBenefit(16))
+        assertNotEquals(fastingBenefit(17), fastingBenefit(18))
+        assertNotEquals(fastingBenefit(19), fastingBenefit(20))
+        assertNotEquals(fastingBenefit(23), fastingBenefit(24))
     }
 }

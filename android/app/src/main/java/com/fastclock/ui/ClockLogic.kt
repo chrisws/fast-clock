@@ -54,6 +54,20 @@ fun fmtHour(h: Int): String {
     return "$hh:00 $ap"
 }
 
+/** Returns a short benefit description for a given fasting duration in hours. */
+fun fastingBenefit(hours: Int): String {
+    return when {
+        hours <= 0 -> "No fasting"
+        hours < 12 -> "Normal eating \u00B7 No significant fast benefit"
+        hours < 14 -> "Metabolic switch \u00B7 Mild insulin reduction"
+        hours < 16 -> "Glycogen depletion \u00B7 Significant insulin drop"
+        hours < 18 -> "Autophagy onset \u00B7 Insulin sensitivity"
+        hours < 20 -> "Enhanced autophagy \u00B7 GH rise \u00B7 Early ketosis"
+        hours < 24 -> "Deep ketosis \u00B7 Peak autophagy \u00B7 GH spike"
+        else -> "Extended fast \u00B7 Stem cell regeneration \u00B7 Metabolic reset"
+    }
+}
+
 /** Calculate the consecutive-day streak from [history] (most recent last). */
 fun calcStreak(history: List<FastSession>): Int {
     if (history.isEmpty()) return 0

@@ -133,13 +133,17 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 color = if (state.clockMode) Accent2 else TextMuted
             )
 
-            StatusSection(
-                isFasting = isFasting,
-                inEatWindow = inEatWindow,
-                currentHour = currentHour,
-                protocol = p,
-                state = state
-            )
+            if (setupMode) {
+                SetupBenefitSummary(protocol = p)
+            } else {
+                StatusSection(
+                    isFasting = isFasting,
+                    inEatWindow = inEatWindow,
+                    currentHour = currentHour,
+                    protocol = p,
+                    state = state
+                )
+            }
 
             WeighInBar(state = state, onStateChange = onStateChange)
 
@@ -386,6 +390,37 @@ private fun StatusSection(
     )
 
     Spacer(modifier = Modifier.height(16.dp))
+}
+
+// ── Setup mode: live benefit summary ──
+
+@Composable
+private fun SetupBenefitSummary(protocol: ResolvedProtocol) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "${protocol.fastHours}h fast  \u00B7  Eat ${fmtHour(protocol.eatStart)} \u2013 ${fmtHour(protocol.eatEnd)}",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Accent2,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = fastingBenefit(protocol.fastHours),
+            fontSize = 12.sp,
+            color = TextMuted,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
 }
 
 // ── Stats bar ──
