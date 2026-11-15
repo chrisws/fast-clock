@@ -133,17 +133,15 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 color = if (state.clockMode) Accent2 else TextMuted
             )
 
-            if (setupMode) {
-                SetupBenefitSummary(protocol = p)
-            } else {
-                StatusSection(
-                    isFasting = isFasting,
-                    inEatWindow = inEatWindow,
-                    currentHour = currentHour,
-                    protocol = p,
-                    state = state
-                )
-            }
+            BenefitSummary(protocol = p)
+
+            StatusSection(
+                isFasting = isFasting,
+                inEatWindow = inEatWindow,
+                currentHour = currentHour,
+                protocol = p,
+                state = state
+            )
 
             WeighInBar(state = state, onStateChange = onStateChange)
 
@@ -392,10 +390,10 @@ private fun StatusSection(
     Spacer(modifier = Modifier.height(16.dp))
 }
 
-// ── Setup mode: live benefit summary ──
+// ── Benefit summary (always visible) ──
 
 @Composable
-private fun SetupBenefitSummary(protocol: ResolvedProtocol) {
+private fun BenefitSummary(protocol: ResolvedProtocol) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()

@@ -59,11 +59,11 @@ fun fastingBenefit(hours: Int): String {
     return when {
         hours <= 0 -> "No fasting"
         hours < 12 -> "Normal eating \u00B7 No significant fast benefit"
-        hours < 14 -> "Metabolic switch \u00B7 Mild insulin reduction"
-        hours < 16 -> "Glycogen depletion \u00B7 Significant insulin drop"
-        hours < 18 -> "Autophagy onset \u00B7 Insulin sensitivity"
-        hours < 20 -> "Enhanced autophagy \u00B7 GH rise \u00B7 Early ketosis"
-        hours < 24 -> "Deep ketosis \u00B7 Peak autophagy \u00B7 GH spike"
+        hours < 14 -> "Metabolic switch \u00B7 Body shifts to fat burning"
+        hours < 16 -> "Glycogen depleted \u00B7 Insulin sensitivity improves"
+        hours < 18 -> "Cellular cleanup begins \u00B7 Lower diabetes risk"
+        hours < 20 -> "Enhanced cellular repair \u00B7 Growth hormone rise \u00B7 Early ketosis"
+        hours < 24 -> "Deep ketosis \u00B7 Peak cellular cleanup \u00B7 Hormone optimization"
         else -> "Extended fast \u00B7 Stem cell regeneration \u00B7 Metabolic reset"
     }
 }

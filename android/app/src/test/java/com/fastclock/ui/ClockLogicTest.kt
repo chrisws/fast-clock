@@ -249,24 +249,28 @@ class ClockLogicTest {
     fun `fastingBenefit - 12 to 13h`() {
         val result = fastingBenefit(12)
         assertTrue(result.contains("Metabolic switch"))
+        assertTrue(result.contains("fat burning"))
     }
 
     @Test
     fun `fastingBenefit - 14 to 15h`() {
         val result = fastingBenefit(14)
-        assertTrue(result.contains("Glycogen depletion"))
+        assertTrue(result.contains("Glycogen depleted"))
+        assertTrue(result.contains("Insulin sensitivity"))
     }
 
     @Test
     fun `fastingBenefit - 16 to 17h`() {
         val result = fastingBenefit(16)
-        assertTrue(result.contains("Autophagy onset"))
+        assertTrue(result.contains("Cellular cleanup"))
+        assertTrue(result.contains("diabetes risk"))
     }
 
     @Test
     fun `fastingBenefit - 18 to 19h`() {
         val result = fastingBenefit(18)
-        assertTrue(result.contains("Enhanced autophagy"))
+        assertTrue(result.contains("Enhanced cellular repair"))
+        assertTrue(result.contains("Growth hormone"))
         assertTrue(result.contains("ketosis"))
     }
 
@@ -274,7 +278,7 @@ class ClockLogicTest {
     fun `fastingBenefit - 20 to 23h`() {
         val result = fastingBenefit(20)
         assertTrue(result.contains("Deep ketosis"))
-        assertTrue(result.contains("GH spike"))
+        assertTrue(result.contains("Hormone optimization"))
     }
 
     @Test
@@ -287,8 +291,6 @@ class ClockLogicTest {
     @Test
     fun `fastingBenefit - boundary values are consistent`() {
         // Each boundary should give a different tier than the one below
-        val tiers = (0..30).map { fastingBenefit(it) }
-        // Verify monotonic progression: tier at 12 != tier at 11, etc.
         assertNotEquals(fastingBenefit(11), fastingBenefit(12))
         assertNotEquals(fastingBenefit(13), fastingBenefit(14))
         assertNotEquals(fastingBenefit(15), fastingBenefit(16))

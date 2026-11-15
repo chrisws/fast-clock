@@ -1,0 +1,15 @@
+{
+  "total_turns": 0,
+  "total_llm_ms": 0,
+  "total_tool_calls": 0,
+  "total_tool_errors": 0,
+  "peak_kv_pct": 0,
+  "total_tokens": 0,
+  "cumulative_tokens": 12406,
+  "cumulative_tool_calls": 63,
+  "cumulative_tool_errors": 2,
+  "cumulative_turns": 1,
+  "cumulative_llm_ms": 284762,
+  "turns": [
+  ]
+}
