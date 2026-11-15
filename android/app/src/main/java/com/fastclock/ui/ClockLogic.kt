@@ -2,6 +2,9 @@ package com.fastclock.ui
 
 import com.fastclock.model.FastSession
 import com.fastclock.model.ResolvedProtocol
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -89,4 +92,48 @@ fun calcStreak(history: List<FastSession>): Int {
         }
     }
     return streak
+}
+
+/** A single day's aggregated score. */
+data class DailyRecord(
+    val date: String,        // "2025-01-15"
+    val label: String,       // "Mon 15" for display
+    val score: Int,          // 0..100
+    val sessions: Int,       // number of fasts completed that day
+    val totalHours: Double   // total fasting hours that day
+)
+
+/**
+ * Compute per-day scores from [history]. Returns records sorted most-recent first.
+ * Scoring: start at 100, -10 per off-time violation, -5 if duration < 80% of target.
+ */
+fun computeDailyScores(history: List<FastSession>, targetFastHours: Int): List<DailyRecord> {
+    if (history.isEmpty()) return emptyList()
+
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val labelFmt = SimpleDateFormat("EEE d", Locale.US)
+
+    // Group sessions by date string (based on endEpoch)
+    val byDate = history.groupBy { sdf.format(Date(it.endEpoch)) }
+
+    return byDate.map { (date, sessions) ->
+        var score = 100
+        var totalHours = 0.0
+
+        for (s in sessions) {
+            totalHours += s.durationHours
+            if (!s.onTime) score -= 10
+            if (s.durationHours < targetFastHours * 0.8) score -= 5
+        }
+
+        score = score.coerceIn(0, 100)
+
+        DailyRecord(
+            date = date,
+            label = labelFmt.format(Date(sessions.last().endEpoch)),
+            score = score,
+            sessions = sessions.size,
+            totalHours = totalHours
+        )
+    }.sortedByDescending { it.date }
 }

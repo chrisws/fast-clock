@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fastclock.model.FastSession
@@ -53,6 +54,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var currentHour by remember { mutableFloatStateOf(0f) }
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
 
@@ -96,6 +98,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 state = state,
                 onStateChange = onStateChange,
                 onWeighIn = { showWeighIn = true },
+                onHistory = { showHistory = true },
                 setupMode = setupMode,
                 onToggleSetup = { setupMode = !setupMode }
             )
@@ -168,6 +171,14 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onDismiss = { showEatCard = false }
             )
         }
+
+        // ── History dialog ──
+        if (showHistory) {
+            HistoryDialog(
+                records = computeDailyScores(state.fastHistory, p.fastHours),
+                onDismiss = { showHistory = false }
+            )
+        }
     }
 }
 
@@ -178,6 +189,7 @@ private fun TopBar(
     state: FastState,
     onStateChange: (FastState) -> Unit,
     onWeighIn: () -> Unit,
+    onHistory: () -> Unit,
     setupMode: Boolean,
     onToggleSetup: () -> Unit
 ) {
@@ -217,15 +229,23 @@ private fun TopBar(
                     color = if (state.clockMode) Accent2 else TextMuted
                 )
             }
+
             // Weigh-in button
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { onWeighIn() },
+                modifier = Modifier.size(40.dp).clickable { onWeighIn() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = "\u2696\uFE0F", fontSize = 20.sp)
             }
+
+            // History button
+            Box(
+                modifier = Modifier.size(40.dp).clickable { onHistory() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
+            }
+
             // Setup mode toggle (gear icon)
             Box(
                 modifier = Modifier
@@ -374,12 +394,20 @@ private fun BenefitSummary(protocol: ResolvedProtocol) {
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(
-            text = fastingBenefit(protocol.fastHours),
-            fontSize = 12.sp,
-            color = TextMuted,
-            textAlign = TextAlign.Center
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(36.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = fastingBenefit(protocol.fastHours),
+                fontSize = 12.sp,
+                color = TextMuted,
+                textAlign = TextAlign.Center,
+                lineHeight = 16.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -503,6 +531,30 @@ private fun EatWindowCard(
                 color = Accent2,
                 textAlign = TextAlign.Center,
                 lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Fasting guidance (migrated from ProtocolPanel)
+            Text(
+                text = "Water, black coffee, and plain tea are fine during your fast. " +
+                        "Avoid anything with calories. If you feel unwell, break your fast " +
+                        "and listen to your body.",
+                fontSize = 12.sp,
+                color = TextMuted,
+                textAlign = TextAlign.Center,
+                lineHeight = 17.sp
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "\u2615 Coffee note: black coffee (no sugar, no cream) " +
+                        "keeps you in a fasted state.",
+                fontSize = 11.sp,
+                color = Accent,
+                textAlign = TextAlign.Center,
+                lineHeight = 16.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
