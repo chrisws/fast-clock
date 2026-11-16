@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import com.fastclock.model.FastSession
 import com.fastclock.model.FastState
 import com.fastclock.model.Protocol
+import com.fastclock.model.StateSerializer
 import com.fastclock.model.WeighIn
 import com.fastclock.notification.FastWindowReceiver
 import com.fastclock.ui.FastClockScreen
@@ -89,8 +90,8 @@ class MainActivity : ComponentActivity() {
         val dailyScore = prefs.getInt("dailyScore", 100)
         val scoreDate = prefs.getString("scoreDate", "") ?: ""
 
-        val fastHistory = prefs.getString("fastHistory", "")?.let { parseFastHistory(it) } ?: emptyList()
-        val weightLog = prefs.getString("weightLog", "")?.let { parseWeightLog(it) } ?: emptyList()
+        val fastHistory = prefs.getString("fastHistory", "")?.let { StateSerializer.parseFastHistory(it) } ?: emptyList()
+        val weightLog = prefs.getString("weightLog", "")?.let { StateSerializer.parseWeightLog(it) } ?: emptyList()
 
         return FastState(
             protocol = protocol,
@@ -110,51 +111,11 @@ class MainActivity : ComponentActivity() {
             putInt("customEatEnd", state.customEatEnd)
             putInt("dailyScore", state.dailyScore)
             putString("scoreDate", state.scoreDate)
-            putString("fastHistory", serializeFastHistory(state.fastHistory))
-            putString("weightLog", serializeWeightLog(state.weightLog))
+            putString("fastHistory", StateSerializer.serializeFastHistory(state.fastHistory))
+            putString("weightLog", StateSerializer.serializeWeightLog(state.weightLog))
             apply()
         }
     }
 
-    // ── Serialization helpers ──
 
-    private fun serializeFastHistory(list: List<FastSession>): String {
-        return list.joinToString(";") { s ->
-            "${s.epoch},${s.onTime}"
-        }
-    }
-
-    private fun parseFastHistory(str: String): List<FastSession> {
-        if (str.isBlank()) return emptyList()
-        return str.split(";").mapNotNull { entry ->
-            val parts = entry.split(",")
-            if (parts.size != 2) return@mapNotNull null
-            try {
-                FastSession(
-                    epoch = parts[0].toLong(),
-                    onTime = parts[1].toBoolean()
-                )
-            } catch (_: Exception) { null }
-        }
-    }
-
-    private fun serializeWeightLog(list: List<WeighIn>): String {
-        return list.joinToString(";") { w ->
-            "${w.dateEpoch},${w.weightKg}"
-        }
-    }
-
-    private fun parseWeightLog(str: String): List<WeighIn> {
-        if (str.isBlank()) return emptyList()
-        return str.split(";").mapNotNull { entry ->
-            val parts = entry.split(",")
-            if (parts.size != 2) return@mapNotNull null
-            try {
-                WeighIn(
-                    dateEpoch = parts[0].toLong(),
-                    weightKg = parts[1].toDouble()
-                )
-            } catch (_: Exception) { null }
-        }
-    }
 }

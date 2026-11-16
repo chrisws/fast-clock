@@ -132,7 +132,7 @@ class FastWindowReceiver : BroadcastReceiver() {
          * Returns the next occurrence of [hour] (0-23) from [nowMillis].
          * If today's occurrence has already passed, returns tomorrow's.
          */
-        private fun nextOccurrence(nowMillis: Long, hour: Int): Long {
+        internal fun nextOccurrence(nowMillis: Long, hour: Int): Long {
             val cal = java.util.Calendar.getInstance()
             cal.timeInMillis = nowMillis
             cal.set(java.util.Calendar.HOUR_OF_DAY, hour)

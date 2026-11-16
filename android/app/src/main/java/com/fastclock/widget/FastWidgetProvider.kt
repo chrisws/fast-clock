@@ -77,7 +77,7 @@ class FastWidgetProvider : android.appwidget.AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun formatHours(hours: Float): String {
+        internal fun formatHours(hours: Float): String {
             val h = hours.toInt()
             val m = ((hours - h) * 60).toInt()
             return "%02d:%02d".format(h, m)

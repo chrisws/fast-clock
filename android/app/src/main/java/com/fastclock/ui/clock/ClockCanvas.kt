@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
@@ -105,169 +106,191 @@ fun ClockCanvas(
         val cy = size.height / 2f
         val outerR = size.minDimension * 0.425f
         val innerR = size.minDimension * 0.3375f
+        val minDim = size.minDimension
         val nativeCanvas = drawContext.canvas.nativeCanvas
 
-        // ── Outer ring track ──
-        drawCircle(
-            color = RingTrack,
-            radius = outerR,
-            center = Offset(cx, cy),
-            style = Stroke(width = size.minDimension * 0.01f)
-        )
+        drawOuterRingTrack(cx, cy, outerR, minDim)
+        drawTicksAndLabels(cx, cy, outerR, minDim, nativeCanvas)
+        drawInnerRingTrack(cx, cy, innerR, minDim)
+        drawFastingArc(cx, cy, innerR, minDim, protocol)
+        drawEatingArc(cx, cy, innerR, minDim, protocol)
+        drawInnerLabels(cx, cy, innerR, minDim, protocol, nativeCanvas)
 
-        // ── Outer ticks + labels ──
-        for (h in 0 until 24) {
-            val angle = (h / 24f) * 2f * pi - pi / 2f
-            val isMajor = h % 6 == 0
-            val isMid = h % 3 == 0
-            val r1 = if (isMajor) outerR * 0.93f else if (isMid) outerR * 0.947f else outerR * 0.965f
-            val r2 = outerR * 0.988f
-            val cosA = cos(angle)
-            val sinA = sin(angle)
-            val x1 = cx + r1 * cosA
-            val y1 = cy + r1 * sinA
-            val x2 = cx + r2 * cosA
-            val y2 = cy + r2 * sinA
-            drawLine(
-                color = if (isMajor) TextMuted else RingTrack,
-                start = Offset(x1, y1),
-                end = Offset(x2, y2),
-                strokeWidth = if (isMajor) 2f else 1f
-            )
-
-            // Hour label
-            val lr = outerR * 0.9f
-            val lx = cx + lr * cosA
-            val ly = cy + lr * sinA
-            val label = hourLabel(h)
-            val fontSize = when {
-                isMajor -> size.minDimension * 0.03f
-                isMid -> size.minDimension * 0.025f
-                else -> size.minDimension * 0.02f
-            }
-            nativeCanvas.withRotation(Math.toDegrees(angle.toDouble()).toFloat() + 90f, lx, ly) {
-                val paint = android.graphics.Paint().apply {
-                    color = TextMuted.argbInt()
-                    textSize = fontSize
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    isAntiAlias = true
-                }
-                drawText(label, lx, ly + fontSize / 3f, paint)
-            }
-        }
-
-        // ── Inner ring track ──
-        drawCircle(
-            color = RingTrackInner,
-            radius = innerR,
-            center = Offset(cx, cy),
-            style = Stroke(width = size.minDimension * 0.045f)
-        )
-
-        // ── Fasting arc (teal) ──
-        drawArc(
-            color = Accent2,
-            startAngle = protocol.eatEnd / 24f * 360f - 90f,
-            sweepAngle = protocol.fastHours / 24f * 360f,
-            useCenter = false,
-            topLeft = Offset(cx - innerR, cy - innerR),
-            size = Size(innerR * 2f, innerR * 2f),
-            style = Stroke(width = size.minDimension * 0.045f, cap = StrokeCap.Round)
-        )
-
-        // ── Eating arc (amber) ──
-        drawArc(
-            color = Accent,
-            startAngle = protocol.eatStart / 24f * 360f - 90f,
-            sweepAngle = protocol.eatHours / 24f * 360f,
-            useCenter = false,
-            topLeft = Offset(cx - innerR, cy - innerR),
-            size = Size(innerR * 2f, innerR * 2f),
-            style = Stroke(width = size.minDimension * 0.045f, cap = StrokeCap.Round)
-        )
-
-        // ── Inner labels: EAT / FAST ──
-        val innerLabelR = innerR * 0.85f
-        drawInnerLabelText(nativeCanvas, cx, cy, innerLabelR, protocol.eatStart, "EAT", Accent, size.minDimension)
-        drawInnerLabelText(nativeCanvas, cx, cy, innerLabelR, protocol.eatEnd, "FAST", Accent2, size.minDimension)
-
-        // ── Setup mode: drag handles at fasting arc edges ──
         if (setupMode) {
-            val handleOuterR = size.minDimension * 0.025f
-            val handleInnerR = size.minDimension * 0.015f
-            for (edgeHour in listOf(protocol.eatStart.toFloat(), protocol.eatEnd.toFloat())) {
-                val angle = (edgeHour / 24f) * 2f * pi - pi / 2f
-                val hx = cx + innerR * cos(angle)
-                val hy = cy + innerR * sin(angle)
-                drawCircle(
-                    color = Color.White,
-                    radius = handleOuterR,
-                    center = Offset(hx, hy),
-                    style = Stroke(width = size.minDimension * 0.008f)
-                )
-                drawCircle(
-                    color = Accent2,
-                    radius = handleInnerR,
-                    center = Offset(hx, hy)
-                )
-            }
+            drawSetupHandles(cx, cy, innerR, minDim, protocol)
         }
 
-        // ── Time hand ──
-        val timeAngle = (currentHour / 24f) * 2f * pi - pi / 2f
-        val hx = cx + outerR * cos(timeAngle)
-        val hy = cy + outerR * sin(timeAngle)
+        drawTimeHand(cx, cy, outerR, minDim, currentHour)
+    }
+}
+
+// ── Drawing helpers (DrawScope extensions) ──
+
+private fun DrawScope.drawOuterRingTrack(cx: Float, cy: Float, outerR: Float, minDim: Float) {
+    drawCircle(
+        color = RingTrack,
+        radius = outerR,
+        center = Offset(cx, cy),
+        style = Stroke(width = minDim * 0.01f)
+    )
+}
+
+private fun DrawScope.drawTicksAndLabels(cx: Float, cy: Float, outerR: Float, minDim: Float, nativeCanvas: android.graphics.Canvas) {
+    val pi = PI.toFloat()
+    for (h in 0 until 24) {
+        val angle = (h / 24f) * 2f * pi - pi / 2f
+        val isMajor = h % 6 == 0
+        val isMid = h % 3 == 0
+        val r1 = if (isMajor) outerR * 0.93f else if (isMid) outerR * 0.947f else outerR * 0.965f
+        val r2 = outerR * 0.988f
+        val cosA = cos(angle)
+        val sinA = sin(angle)
+        val x1 = cx + r1 * cosA
+        val y1 = cy + r1 * sinA
+        val x2 = cx + r2 * cosA
+        val y2 = cy + r2 * sinA
         drawLine(
-            color = TextMuted,
-            start = Offset(cx, cy),
-            end = Offset(hx, hy),
-            strokeWidth = 1.5f,
-            cap = StrokeCap.Round
+            color = if (isMajor) TextMuted else RingTrack,
+            start = Offset(x1, y1),
+            end = Offset(x2, y2),
+            strokeWidth = if (isMajor) 2f else 1f
         )
 
-        // ── Time dot ──
+        // Hour label
+        val lr = outerR * 0.9f
+        val lx = cx + lr * cosA
+        val ly = cy + lr * sinA
+        val label = hourLabel(h)
+        val fontSize = when {
+            isMajor -> minDim * 0.03f
+            isMid -> minDim * 0.025f
+            else -> minDim * 0.02f
+        }
+        nativeCanvas.withRotation(Math.toDegrees(angle.toDouble()).toFloat() + 90f, lx, ly) {
+            val paint = android.graphics.Paint().apply {
+                color = TextMuted.argbInt()
+                textSize = fontSize
+                textAlign = android.graphics.Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            drawText(label, lx, ly + fontSize / 3f, paint)
+        }
+    }
+}
+
+private fun DrawScope.drawInnerRingTrack(cx: Float, cy: Float, innerR: Float, minDim: Float) {
+    drawCircle(
+        color = RingTrackInner,
+        radius = innerR,
+        center = Offset(cx, cy),
+        style = Stroke(width = minDim * 0.045f)
+    )
+}
+
+private fun DrawScope.drawFastingArc(cx: Float, cy: Float, innerR: Float, minDim: Float, protocol: ResolvedProtocol) {
+    drawArc(
+        color = Accent2,
+        startAngle = protocol.eatEnd / 24f * 360f - 90f,
+        sweepAngle = protocol.fastHours / 24f * 360f,
+        useCenter = false,
+        topLeft = Offset(cx - innerR, cy - innerR),
+        size = Size(innerR * 2f, innerR * 2f),
+        style = Stroke(width = minDim * 0.045f, cap = StrokeCap.Round)
+    )
+}
+
+private fun DrawScope.drawEatingArc(cx: Float, cy: Float, innerR: Float, minDim: Float, protocol: ResolvedProtocol) {
+    drawArc(
+        color = Accent,
+        startAngle = protocol.eatStart / 24f * 360f - 90f,
+        sweepAngle = protocol.eatHours / 24f * 360f,
+        useCenter = false,
+        topLeft = Offset(cx - innerR, cy - innerR),
+        size = Size(innerR * 2f, innerR * 2f),
+        style = Stroke(width = minDim * 0.045f, cap = StrokeCap.Round)
+    )
+}
+
+private fun DrawScope.drawInnerLabels(cx: Float, cy: Float, innerR: Float, minDim: Float, protocol: ResolvedProtocol, nativeCanvas: android.graphics.Canvas) {
+    val innerLabelR = innerR * 0.85f
+    drawInnerLabelText(nativeCanvas, cx, cy, innerLabelR, protocol.eatStart, "EAT", Accent, minDim)
+    drawInnerLabelText(nativeCanvas, cx, cy, innerLabelR, protocol.eatEnd, "FAST", Accent2, minDim)
+}
+
+private fun DrawScope.drawSetupHandles(cx: Float, cy: Float, innerR: Float, minDim: Float, protocol: ResolvedProtocol) {
+    val handleOuterR = minDim * 0.025f
+    val handleInnerR = minDim * 0.015f
+    val pi = PI.toFloat()
+    for (edgeHour in listOf(protocol.eatStart.toFloat(), protocol.eatEnd.toFloat())) {
+        val angle = (edgeHour / 24f) * 2f * pi - pi / 2f
+        val hx = cx + innerR * cos(angle)
+        val hy = cy + innerR * sin(angle)
         drawCircle(
             color = Color.White,
-            radius = size.minDimension * 0.0125f,
+            radius = handleOuterR,
+            center = Offset(hx, hy),
+            style = Stroke(width = minDim * 0.008f)
+        )
+        drawCircle(
+            color = Accent2,
+            radius = handleInnerR,
             center = Offset(hx, hy)
         )
     }
 }
 
+private fun DrawScope.drawTimeHand(cx: Float, cy: Float, outerR: Float, minDim: Float, currentHour: Float) {
+    val pi = PI.toFloat()
+    val timeAngle = (currentHour / 24f) * 2f * pi - pi / 2f
+    val hx = cx + outerR * cos(timeAngle)
+    val hy = cy + outerR * sin(timeAngle)
+    drawLine(
+        color = TextMuted,
+        start = Offset(cx, cy),
+        end = Offset(hx, hy),
+        strokeWidth = 1.5f,
+        cap = StrokeCap.Round
+    )
+    drawCircle(
+        color = Color.White,
+        radius = minDim * 0.0125f,
+        center = Offset(hx, hy)
+    )
+}
+
 // ── Gesture helpers ──
 
-private fun positionToHour(pos: Offset, canvasSize: Size): Float {
+internal fun positionToHour(pos: Offset, canvasSize: Size): Float {
     val cx = canvasSize.width / 2f
     val cy = canvasSize.height / 2f
     val dx = pos.x - cx
     val dy = pos.y - cy
-    val angle = atan2(dy.toDouble(), dx.toDouble()).toFloat() // -π..π, 0=right, +ve=clockwise (screen)
-    var clockAngle = angle + PI.toFloat() / 2f // shift so 0=top
+    val angle = atan2(dy.toDouble(), dx.toDouble()).toFloat()
+    var clockAngle = angle + PI.toFloat() / 2f
     if (clockAngle < 0f) clockAngle += 2f * PI.toFloat()
     return clockAngle / (2f * PI.toFloat()) * 24f
 }
 
-private fun determineDragMode(touchHour: Float, p: ResolvedProtocol): Int {
+internal fun determineDragMode(touchHour: Float, p: ResolvedProtocol): Int {
     val distToStart = angularDistance(touchHour, p.eatStart.toFloat())
     val distToEnd = angularDistance(touchHour, p.eatEnd.toFloat())
 
     if (distToStart <= EDGE_TOLERANCE) return DRAG_RESIZE_START
     if (distToEnd <= EDGE_TOLERANCE) return DRAG_RESIZE_END
 
-    // If touching the fasting arc (not eating), allow to rotate
     if (!isInEatingRange(touchHour, p.eatStart, p.eatEnd)) return DRAG_ROTATE
 
     return DRAG_NONE
 }
 
-private fun angularDistance(a: Float, b: Float): Float {
+internal fun angularDistance(a: Float, b: Float): Float {
     val diff = abs(a - b)
     return minOf(diff, 24f - diff)
 }
 
-private fun isInEatingRange(hour: Float, start: Int, end: Int): Boolean {
+internal fun isInEatingRange(hour: Float, start: Int, end: Int): Boolean {
     if (start < end) return hour >= start && hour < end
-    return hour >= start || hour < end // wraps around midnight
+    return hour >= start || hour < end
 }
 
 // ── Drawing helpers ──
@@ -303,7 +326,7 @@ private fun Color.argbInt(): Int {
     )
 }
 
-private fun hourLabel(h: Int): String {
+internal fun hourLabel(h: Int): String {
     val hh = if (h % 12 == 0) 12 else h % 12
     return "$hh${if (h < 12) "a" else "p"}"
 }

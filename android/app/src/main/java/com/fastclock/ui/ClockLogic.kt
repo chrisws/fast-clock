@@ -1,6 +1,7 @@
 package com.fastclock.ui
 
 import com.fastclock.model.FastSession
+import com.fastclock.model.FastState
 import com.fastclock.model.ResolvedProtocol
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -11,6 +12,21 @@ import kotlin.math.roundToInt
 /**
  * Pure clock/time logic extracted from FastClockScreen for unit testing.
  */
+
+/**
+ * Resolve the effective protocol for the current state.
+ * In clock mode, the eating window rolls with the current hour.
+ */
+fun resolveProtocol(state: FastState, currentHour: Float): ResolvedProtocol {
+    val base = state.resolvedProtocol()
+    return if (state.clockMode) {
+        val eatStart = currentHour.toInt() % 24
+        val eatEnd = (eatStart + base.eatHours) % 24
+        ResolvedProtocol(24 - base.eatHours, base.eatHours, eatStart, eatEnd)
+    } else {
+        base
+    }
+}
 
 /** Returns true if [curH] falls within the eating window defined by [p]. */
 fun isInEatingWindow(curH: Float, p: ResolvedProtocol): Boolean {
