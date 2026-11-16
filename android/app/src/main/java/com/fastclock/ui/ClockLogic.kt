@@ -74,17 +74,17 @@ fun fmtHour(h: Int): String {
     return "$hh:00 $ap"
 }
 
-/** Returns a short benefit description for a given fasting duration in hours. */
+/** Returns a short description for a given fasting duration in hours. */
 fun fastingBenefit(hours: Int): String {
     return when {
         hours <= 0 -> "No fasting"
-        hours < 12 -> "Normal eating \u00B7 No significant fast benefit"
-        hours < 14 -> "Metabolic switch \u00B7 Body shifts to fat burning"
-        hours < 16 -> "Glycogen depleted \u00B7 Insulin sensitivity improves"
-        hours < 18 -> "Cellular cleanup begins \u00B7 Lower diabetes risk"
-        hours < 20 -> "Enhanced cellular repair \u00B7 Growth hormone rise \u00B7 Early ketosis"
-        hours < 24 -> "Deep ketosis \u00B7 Peak cellular cleanup \u00B7 Hormone optimization"
-        else -> "Extended fast \u00B7 Stem cell regeneration \u00B7 Metabolic reset"
+        hours < 12 -> "Normal eating \u00B7 No significant fast window"
+        hours < 14 -> "A gentle start \u00B7 Easy to maintain"
+        hours < 16 -> "A popular beginner protocol \u00B7 16:8"
+        hours < 18 -> "A step up \u00B7 18:6 is a common target"
+        hours < 20 -> "An advanced protocol \u00B7 20:4"
+        hours < 24 -> "A serious commitment \u00B7 23:1"
+        else -> "Extended fast \u00B7 Pushing your limits"
     }
 }
 

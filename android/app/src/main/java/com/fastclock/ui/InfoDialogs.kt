@@ -85,6 +85,26 @@ fun AboutDialog(onDismiss: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Text(
+                "DISCLAIMER",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextMuted,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                "FastClock is a tracking tool and does not provide medical advice. " +
+                "Consult a healthcare professional before starting any fasting or diet programme.",
+                fontSize = 12.sp,
+                color = TextMuted,
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
         }
     }
