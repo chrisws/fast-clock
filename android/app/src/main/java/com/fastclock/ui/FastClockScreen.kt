@@ -55,6 +55,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showEatCard by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    var showHelp by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
 
@@ -100,6 +101,7 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onWeighIn = { showWeighIn = true },
                 onHistory = { showHistory = true },
                 onAbout = { showAbout = true },
+                onHelp = { showHelp = true },
                 setupMode = setupMode,
                 onToggleSetup = { setupMode = !setupMode }
             )
@@ -181,6 +183,13 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
             )
         }
 
+        // ── Help dialog ──
+        if (showHelp) {
+            HelpDialog(
+                onDismiss = { showHelp = false }
+            )
+        }
+
         // ── About dialog ──
         if (showAbout) {
             AboutDialog(
@@ -199,6 +208,7 @@ private fun TopBar(
     onWeighIn: () -> Unit,
     onHistory: () -> Unit,
     onAbout: () -> Unit,
+    onHelp: () -> Unit,
     setupMode: Boolean,
     onToggleSetup: () -> Unit
 ) {
@@ -232,6 +242,14 @@ private fun TopBar(
             contentAlignment = Alignment.Center
         ) {
             Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
+        }
+
+        // Help button
+        Box(
+            modifier = Modifier.size(40.dp).clickable { onHelp() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "\u2753", fontSize = 20.sp)
         }
 
         // About button
@@ -670,6 +688,52 @@ private fun AboutDialog(onDismiss: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
+        }
+    }
+}
+
+// ── Help dialog ──
+
+@Composable
+private fun HelpDialog(onDismiss: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(Bg.copy(alpha = 0.7f))
+            .clickable { onDismiss() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 32.dp)
+                .background(Surface, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("How It Works", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Text)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val items = listOf(
+                "You have an eating window (e.g. 12 PM \u2013 6 PM). Outside that, you fast.",
+                "Tap \uD83C\uDF5E I ATE whenever you eat. In-window scores 100, outside scores 90.",
+                "Log at least one meal per day to keep your streak alive.",
+                "Forget to log? No entry is created \u2014 no penalty, no bloat.",
+                "Long-press the button to enable rolling mode (window follows the clock)."
+            )
+            items.forEach { item ->
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text("\u2022 ", fontSize = 13.sp, color = TextMuted)
+                    Text(
+                        item,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 13.sp,
+                        color = TextMuted,
+                        lineHeight = 19.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
             Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
         }
     }
