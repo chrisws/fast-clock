@@ -209,7 +209,7 @@ private fun TopBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Setup mode toggle (gear icon)
+        // Setup mode toggle (plate icon)
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -217,7 +217,7 @@ private fun TopBar(
                 .clickable { onToggleSetup() },
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "\u2699\uFE0F", fontSize = 20.sp)
+            Text(text = "\uD83C\uDF7D", fontSize = 20.sp)
         }
 
         // Weigh-in button
@@ -228,28 +228,28 @@ private fun TopBar(
             Text(text = "\u2696\uFE0F", fontSize = 20.sp)
         }
 
-        // History button
+        // History button (progress receipt)
         Box(
             modifier = Modifier.size(40.dp).clickable { onHistory() },
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
+            Text(text = "\uD83E\uDDFE", fontSize = 20.sp)
         }
 
-        // Help button
+        // Help button (fried egg)
         Box(
             modifier = Modifier.size(40.dp).clickable { onHelp() },
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "\u2753", fontSize = 20.sp)
+            Text(text = "\uD83C\uDF73", fontSize = 20.sp)
         }
 
-        // About button
+        // About button (package)
         Box(
             modifier = Modifier.size(40.dp).clickable { onAbout() },
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "\u2139\uFE0F", fontSize = 20.sp)
+            Text(text = "\uD83D\uDCE6", fontSize = 20.sp)
         }
     }
 }
