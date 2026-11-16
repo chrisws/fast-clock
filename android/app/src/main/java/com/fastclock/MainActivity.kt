@@ -86,7 +86,6 @@ class MainActivity : ComponentActivity() {
         val protocol = Protocol.fromLabel(prefs.getString("protocol", "18:6") ?: "18:6")
         val customEatStart = prefs.getInt("customEatStart", 12)
         val customEatEnd = prefs.getInt("customEatEnd", 18)
-        val fastStartEpoch = prefs.getLong("fastStartEpoch", -1L).let { if (it == -1L) null else it }
         val dailyScore = prefs.getInt("dailyScore", 100)
         val scoreDate = prefs.getString("scoreDate", "") ?: ""
 
@@ -97,7 +96,6 @@ class MainActivity : ComponentActivity() {
             protocol = protocol,
             customEatStart = customEatStart,
             customEatEnd = customEatEnd,
-            fastStartEpoch = fastStartEpoch,
             dailyScore = dailyScore,
             scoreDate = scoreDate,
             fastHistory = fastHistory,
@@ -110,7 +108,6 @@ class MainActivity : ComponentActivity() {
             putString("protocol", state.protocol.label)
             putInt("customEatStart", state.customEatStart)
             putInt("customEatEnd", state.customEatEnd)
-            putLong("fastStartEpoch", state.fastStartEpoch ?: -1L)
             putInt("dailyScore", state.dailyScore)
             putString("scoreDate", state.scoreDate)
             putString("fastHistory", serializeFastHistory(state.fastHistory))
@@ -123,7 +120,7 @@ class MainActivity : ComponentActivity() {
 
     private fun serializeFastHistory(list: List<FastSession>): String {
         return list.joinToString(";") { s ->
-            "${s.startEpoch},${s.endEpoch},${s.durationHours},${s.onTime}"
+            "${s.epoch},${s.onTime}"
         }
     }
 
@@ -131,13 +128,11 @@ class MainActivity : ComponentActivity() {
         if (str.isBlank()) return emptyList()
         return str.split(";").mapNotNull { entry ->
             val parts = entry.split(",")
-            if (parts.size != 4) return@mapNotNull null
+            if (parts.size != 2) return@mapNotNull null
             try {
                 FastSession(
-                    startEpoch = parts[0].toLong(),
-                    endEpoch = parts[1].toLong(),
-                    durationHours = parts[2].toDouble(),
-                    onTime = parts[3].toBoolean()
+                    epoch = parts[0].toLong(),
+                    onTime = parts[1].toBoolean()
                 )
             } catch (_: Exception) { null }
         }

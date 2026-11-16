@@ -82,7 +82,7 @@ private fun DailyRow(record: DailyRecord) {
                 Box(modifier = Modifier.fillMaxWidth(record.score / 100f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(barColor)) {}
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text("%.0fh fasted".format(record.totalHours), fontSize = 10.sp, color = TextMuted, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Text("${record.eatCount} eat${if (record.eatCount != 1) "s" else ""}", fontSize = 10.sp, color = TextMuted, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
         }
 
         Text("${record.score}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = barColor, modifier = Modifier.width(36.dp))

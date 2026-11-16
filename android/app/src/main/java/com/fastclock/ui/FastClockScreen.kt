@@ -80,8 +80,8 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     } else {
         baseProtocol
     }
-    val isFasting = state.fastStartEpoch != null
     val inEatWindow = isInEatingWindow(currentHour, p)
+    val isFasting = !inEatWindow
     val streak = calcStreak(state.fastHistory)
 
     Box(
@@ -274,37 +274,22 @@ private fun ClockArea(
         Box(
             modifier = Modifier
                 .size(110.dp)
-                .background(if (isFasting) Accent else Surface, CircleShape)
+                .background(Accent, CircleShape)
                 .combinedClickable(
                     onClick = {
-                        if (isFasting) {
-                            // Break fast: record session, apply score penalty
-                            val startEpoch = state.fastStartEpoch!!
-                            val now = System.currentTimeMillis()
-                            val duration = (now - startEpoch) / 3600000.0
-                            val onTime = isInEatingWindow(currentHour, protocol)
-                            val newScore = if (onTime) state.dailyScore
-                                else maxOf(0, state.dailyScore - 10)
-                            val session = FastSession(
-                                startEpoch = startEpoch,
-                                endEpoch = now,
-                                durationHours = duration,
-                                onTime = onTime
-                            )
-                            onStateChange(state.copy(
-                                fastStartEpoch = null,
-                                dailyScore = newScore,
-                                fastHistory = state.fastHistory + session
-                            ))
-                        } else {
-                            // Start fast: penalty if in eating window
-                            val newScore = if (inEatWindow) maxOf(0, state.dailyScore - 10)
-                                else state.dailyScore
-                            onStateChange(state.copy(
-                                fastStartEpoch = System.currentTimeMillis(),
-                                dailyScore = newScore
-                            ))
-                        }
+                        // Log "I ate" event
+                        val now = System.currentTimeMillis()
+                        val onTime = isInEatingWindow(currentHour, protocol)
+                        val newScore = if (onTime) state.dailyScore
+                            else maxOf(0, state.dailyScore - 10)
+                        val event = FastSession(
+                            epoch = now,
+                            onTime = onTime
+                        )
+                        onStateChange(state.copy(
+                            dailyScore = newScore,
+                            fastHistory = state.fastHistory + event
+                        ))
                     },
                     onLongClick = { onStateChange(state.copy(clockMode = !state.clockMode)) }
                 ),
@@ -312,30 +297,23 @@ private fun ClockArea(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = if (isFasting) "\uD83C\uDF5D" else "\u23F3",
+                    text = "\uD83C\uDF5E",
                     fontSize = 26.sp,
-                    color = if (isFasting) Bg else TextMuted
+                    color = Bg
                 )
                 Text(
-                    text = if (isFasting) "BREAK" else "START",
+                    text = "I ATE",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
-                    color = if (isFasting) Bg else TextMuted
-                )
-                Text(
-                    text = "FAST",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = if (isFasting) Bg else TextMuted
+                    color = Bg
                 )
 
                 // Rolling mode indicator (small dot when active)
                 if (state.clockMode) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Box(
-                        modifier = Modifier.size(6.dp).background(Accent2, CircleShape)
+                        modifier = Modifier.size(6.dp).background(Bg, CircleShape)
                     )
                 }
             }
@@ -623,15 +601,11 @@ private fun statusText(
     state: FastState
 ): String {
     return when {
-        isFasting -> {
-            val elapsed = (System.currentTimeMillis() - (state.fastStartEpoch ?: 0L)) / 3600000f
-            "Fasting \u00B7 ${fmtCountdown(elapsed)} elapsed"
-        }
         inEat -> {
-            "Eating \u00B7 ${fmtCountdown(timeUntilEatEnd(curH, p))} until fast"
+            "Eating window \u00B7 ${fmtCountdown(timeUntilEatEnd(curH, p))} until fast"
         }
         else -> {
-            "Fasting \u00B7 ${fmtCountdown(timeUntilEatStart(curH, p))} remaining"
+            "Fasting \u00B7 ${fmtCountdown(timeUntilEatStart(curH, p))} until eating"
         }
     }
 }
@@ -674,17 +648,25 @@ private fun AboutDialog(onDismiss: () -> Unit) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                "\u2022 No data is collected or shared with third parties\n" +
-                "\u2022 All data is stored locally on your device only\n" +
-                "\u2022 No ads, tracking, or analytics SDKs\n" +
-                "\u2022 No permissions beyond app functionality\n" +
-                "\u2022 All data is removed when you uninstall the app",
-                fontSize = 12.sp,
-                color = TextMuted,
-                textAlign = TextAlign.Start,
-                lineHeight = 18.sp
+            val privacyItems = listOf(
+                "No data is collected or shared with third parties",
+                "All data is stored locally on your device only",
+                "No ads, tracking, or analytics SDKs",
+                "No permissions beyond app functionality",
+                "All data is removed when you uninstall the app"
             )
+            privacyItems.forEach { item ->
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                    Text("\u2022 ", fontSize = 12.sp, color = TextMuted)
+                    Text(
+                        item,
+                        modifier = Modifier.weight(1f),
+                        fontSize = 12.sp,
+                        color = TextMuted,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

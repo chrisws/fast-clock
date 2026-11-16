@@ -1,16 +1,12 @@
 package com.fastclock.model
 
 /**
- * A single completed fast session.
+ * A single "I ate" event logged by the user.
  */
 data class FastSession(
-    val startEpoch: Long,
-    val endEpoch: Long,
-    val durationHours: Double,
+    val epoch: Long,
     val onTime: Boolean
-) {
-    val durationMinutes: Int get() = (durationHours * 60).toInt()
-}
+)
 
 /**
  * A weigh-in entry.
@@ -28,7 +24,6 @@ data class FastState(
     val customEatStart: Int = 12,
     val customEatEnd: Int = 18,
     val clockMode: Boolean = false,
-    val fastStartEpoch: Long? = null,
     val dailyScore: Int = 100,
     val scoreDate: String = "",
     val fastHistory: List<FastSession> = emptyList(),
