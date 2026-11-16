@@ -54,7 +54,6 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showWeighIn by remember { mutableStateOf(false) }
     var showEatCard by remember { mutableStateOf(false) }
     var showHistory by remember { mutableStateOf(false) }
-    var showProtocolInfo by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
@@ -100,7 +99,6 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 onStateChange = onStateChange,
                 onWeighIn = { showWeighIn = true },
                 onHistory = { showHistory = true },
-                onProtocolInfo = { showProtocolInfo = true },
                 onAbout = { showAbout = true },
                 setupMode = setupMode,
                 onToggleSetup = { setupMode = !setupMode }
@@ -183,18 +181,6 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
             )
         }
 
-        // ── Protocol info popup ──
-        if (showProtocolInfo) {
-            ProtocolInfoDialog(
-                protocol = state.protocol,
-                fastHours = p.fastHours,
-                eatHours = p.eatHours,
-                eatStart = p.eatStart,
-                eatEnd = p.eatEnd,
-                onDismiss = { showProtocolInfo = false }
-            )
-        }
-
         // ── About dialog ──
         if (showAbout) {
             AboutDialog(
@@ -212,68 +198,48 @@ private fun TopBar(
     onStateChange: (FastState) -> Unit,
     onWeighIn: () -> Unit,
     onHistory: () -> Unit,
-    onProtocolInfo: () -> Unit,
     onAbout: () -> Unit,
     setupMode: Boolean,
     onToggleSetup: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Protocol badge (tap for info)
+        // Setup mode toggle (gear icon)
         Box(
             modifier = Modifier
-                .background(Accent2Dim, RoundedCornerShape(20.dp))
-                .clickable { onProtocolInfo() }
-                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .size(40.dp)
+                .background(if (setupMode) Accent2Dim else Surface, CircleShape)
+                .clickable { onToggleSetup() },
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = if (state.protocol == Protocol.CUSTOM)
-                    "${state.customEatStart}:${state.customEatEnd}"
-                else state.protocol.label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = Accent2
-            )
+            Text(text = "\u2699\uFE0F", fontSize = 20.sp)
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Setup mode toggle (gear icon)
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(if (setupMode) Accent2Dim else Surface, CircleShape)
-                    .clickable { onToggleSetup() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "\u2699\uFE0F", fontSize = 20.sp)
-            }
+        // Weigh-in button
+        Box(
+            modifier = Modifier.size(40.dp).clickable { onWeighIn() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "\u2696\uFE0F", fontSize = 20.sp)
+        }
 
-            // Weigh-in button
-            Box(
-                modifier = Modifier.size(40.dp).clickable { onWeighIn() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "\u2696\uFE0F", fontSize = 20.sp)
-            }
+        // History button
+        Box(
+            modifier = Modifier.size(40.dp).clickable { onHistory() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
+        }
 
-            // History button
-            Box(
-                modifier = Modifier.size(40.dp).clickable { onHistory() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "\uD83D\uDCCA", fontSize = 20.sp)
-            }
-
-            // About button
-            Box(
-                modifier = Modifier.size(40.dp).clickable { onAbout() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "\u2139\uFE0F", fontSize = 20.sp)
-            }
+        // About button
+        Box(
+            modifier = Modifier.size(40.dp).clickable { onAbout() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "\u2139\uFE0F", fontSize = 20.sp)
         }
     }
 }
@@ -389,12 +355,12 @@ private fun ClockArea(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 8.dp, end = 8.dp)
-                .size(28.dp)
+                .size(40.dp)
                 .background(Surface, CircleShape)
                 .clickable { onToggleEatCard() },
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "\u24D8", fontSize = 14.sp, color = TextMuted)
+            Text(text = "\uD83C\uDF74", fontSize = 20.sp, color = TextMuted)
         }
     }
 }
@@ -582,6 +548,18 @@ private fun EatWindowCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Protocol guidance
+            Text(
+                text = "Stay within this window for your best daily score. " +
+                        "Fasting shifts your body to fat burning and cellular cleanup.",
+                fontSize = 12.sp,
+                color = TextMuted,
+                textAlign = TextAlign.Center,
+                lineHeight = 17.sp
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
             // Fasting guidance (migrated from ProtocolPanel)
             Text(
                 text = "Water, black coffee, and plain tea are fine during your fast. " +
@@ -658,47 +636,6 @@ private fun statusText(
     }
 }
 
-
-// ── Protocol info popup ──
-
-@Composable
-private fun ProtocolInfoDialog(
-    protocol: Protocol,
-    fastHours: Int,
-    eatHours: Int,
-    eatStart: Int,
-    eatEnd: Int,
-    onDismiss: () -> Unit
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .background(Bg.copy(alpha = 0.7f))
-            .clickable { onDismiss() },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-                .padding(horizontal = 32.dp)
-                .background(Surface, RoundedCornerShape(16.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("${fmtHour(eatStart)} \u2013 ${fmtHour(eatEnd)}", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Accent2)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("eating window", fontSize = 13.sp, color = TextMuted)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("${fastHours}h fasting \u00B7 ${eatHours}h eating", fontSize = 14.sp, color = TextMuted)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Stay within this window for your best daily score. " +
-                "Fasting shifts your body to fat burning and cellular cleanup.",
-                fontSize = 12.sp, color = TextMuted, textAlign = TextAlign.Center, lineHeight = 17.sp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("Tap outside to close", fontSize = 11.sp, color = TextMuted)
-        }
-    }
-}
 
 // ── About dialog ──
 
