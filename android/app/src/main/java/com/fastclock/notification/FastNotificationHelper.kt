@@ -33,11 +33,18 @@ class FastWindowReceiver : BroadcastReceiver() {
 
         ensureChannel(context)
 
+        val contentIntent = PendingIntent.getActivity(
+            context, 0,
+            Intent(context, com.fastclock.MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notificationId = requestCode
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_info_details)
             .setContentTitle(title)
             .setContentText(text)
+            .setContentIntent(contentIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
