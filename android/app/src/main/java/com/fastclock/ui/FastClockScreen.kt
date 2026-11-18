@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +47,7 @@ import com.fastclock.ui.theme.Bg
 import com.fastclock.ui.theme.Surface
 import com.fastclock.ui.theme.Text
 import com.fastclock.ui.theme.TextMuted
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -57,6 +61,8 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
     var showHelp by remember { mutableStateOf(false) }
     var setupMode by remember { mutableStateOf(false) }
     var timeString by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     // Tick every second
     LaunchedEffect(Unit) {
@@ -117,6 +123,11 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                             customEatStart = eatStart,
                             customEatEnd = eatEnd
                         ))
+                    },
+                    onAte = {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Logged! 🍽️")
+                        }
                     }
                 )
             }
@@ -147,6 +158,11 @@ fun FastClockScreen(state: FastState, onStateChange: (FastState) -> Unit) {
                 streak = streak
             )
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
 
         // ── Weigh-in dialog ──
         if (showWeighIn) {
@@ -267,7 +283,8 @@ private fun ClockArea(
     onStateChange: (FastState) -> Unit,
     onToggleEatCard: () -> Unit,
     setupMode: Boolean = false,
-    onProtocolChange: ((eatStart: Int, eatEnd: Int) -> Unit)? = null
+    onProtocolChange: ((eatStart: Int, eatEnd: Int) -> Unit)? = null,
+    onAte: () -> Unit = {}
 ) {
     Box(contentAlignment = Alignment.Center) {
         ClockCanvas(
@@ -300,6 +317,7 @@ private fun ClockArea(
                             dailyScore = newScore,
                             fastHistory = state.fastHistory + event
                         ))
+                        onAte()
                     },
                     onLongClick = { onStateChange(state.copy(clockMode = !state.clockMode)) }
                 ),
